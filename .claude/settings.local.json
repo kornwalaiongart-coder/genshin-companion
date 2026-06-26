@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($g = \\(Get-Command git -ErrorAction SilentlyContinue\\).Source; if\\($g\\){ \"GIT INSTALLED: $g\"; git --version } else { \"still installing or needs new shell\" })"
+    ]
+  }
+}

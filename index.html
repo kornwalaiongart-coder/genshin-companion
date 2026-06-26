@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ Genshin Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1020; --bg2:#181a33; --card:#1e2142; --card2:#262a52;
+  --line:#33386b; --txt:#e8e9f5; --mut:#9a9fc7; --acc:#ffd86b; --acc2:#7c6cff;
+  --ok:#4ade80; --bad:#f87171;
+  --Pyro:#ff7a59; --Hydro:#4fb6f5; --Anemo:#5fe0b8; --Electro:#c08bff;
+  --Cryo:#8fdcff; --Geo:#f5c451; --Dendro:#a8d84a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Kanit',sans-serif;background:linear-gradient(160deg,#0f1020,#1a1330);color:var(--txt);min-height:100vh;padding-bottom:90px}
+a{color:var(--acc)}
+header{text-align:center;padding:22px 14px 12px}
+header h1{font-weight:700;font-size:1.6rem;letter-spacing:.5px}
+header h1 span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+header p{color:var(--mut);font-size:.85rem;margin-top:2px}
+.wrap{max-width:920px;margin:0 auto;padding:0 14px}
+.view{display:none;animation:fade .35s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.card h2{font-size:1.05rem;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.btn{background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:8px 14px;border-radius:10px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:.15s}
+.btn:hover{border-color:var(--acc2);transform:translateY(-1px)}
+.btn.on{background:var(--acc2);border-color:var(--acc2);color:#fff}
+.btn.acc{background:var(--acc);color:#1a1330;border-color:var(--acc);font-weight:600}
+
+nav{position:fixed;bottom:0;left:0;right:0;background:rgba(20,22,45,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px;z-index:50}
+nav button{background:none;border:none;color:var(--mut);font-family:inherit;font-size:.7rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;border-radius:10px;transition:.15s}
+nav button .ic{font-size:1.3rem}
+nav button.active{color:var(--acc)}
+
+.resin-big{font-size:2.4rem;font-weight:700;text-align:center;color:var(--acc)}
+.resin-big small{font-size:1rem;color:var(--mut);font-weight:400}
+.bar{height:12px;background:var(--bg);border-radius:8px;overflow:hidden;margin:10px 0}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:.3s}
+.mini{color:var(--mut);font-size:.8rem;text-align:center}
+
+.chk{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.chk:last-child{border-bottom:none}
+.chk .box{width:22px;height:22px;border:2px solid var(--line);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:.15s}
+.chk.done .box{background:var(--ok);border-color:var(--ok)}
+.chk.done span{text-decoration:line-through;color:var(--mut)}
+
+.el{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:500}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.ch{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.ch:hover{transform:translateY(-2px);border-color:var(--acc2)}
+.ch.off{opacity:.42}
+.ch .nm{font-weight:600;font-size:.92rem}
+.ch .sub{color:var(--mut);font-size:.74rem;margin-top:3px}
+.ch .stars{color:var(--acc);font-size:.72rem;margin-top:5px}
+.ch .own{position:absolute;top:8px;right:8px;font-size:.85rem}
+.bar-el{position:absolute;left:0;top:0;bottom:0;width:5px}
+
+.team{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
+.team.full{border-color:var(--ok)}
+.team h3{font-size:.98rem;margin-bottom:4px}
+.team .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{padding:4px 10px;border-radius:8px;font-size:.78rem;background:var(--card);border:1px solid var(--line)}
+.tag.have{background:rgba(74,222,128,.15);border-color:var(--ok);color:var(--ok)}
+.tag.miss{background:rgba(248,113,113,.12);border-color:var(--bad);color:var(--bad)}
+.team .status{font-size:.8rem;margin-top:8px}
+
+.mapwrap{position:relative;background:var(--bg);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+svg .reg{stroke:var(--line);stroke-width:1.5;cursor:pointer;transition:.2s}
+svg .reg:hover{filter:brightness(1.3)}
+.dot{fill:var(--acc);stroke:#1a1330;stroke-width:2;cursor:pointer;transition:.2s}
+.dot:hover{r:9}
+.popup{background:var(--card2);border:1px solid var(--acc2);border-radius:12px;padding:14px;margin-top:12px;display:none}
+.popup.show{display:block}
+
+.bsel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.bd dt{font-weight:600;color:var(--acc);font-size:.85rem;margin-top:12px}
+.bd dd{color:var(--txt);font-size:.88rem;margin-top:3px;line-height:1.55}
+.bd .li{padding:3px 0;border-bottom:1px dashed var(--line)}
+.tipbox{background:var(--bg);border-radius:10px;padding:12px;margin-top:6px;white-space:pre-line;font-size:.85rem;line-height:1.7}
+.hint{color:var(--mut);font-size:.8rem;margin-top:6px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>✦ <span>Genshin Companion</span></h1>
+  <p>ตัวช่วยวางแผนการเล่น Genshin Impact</p>
+</header>
+
+<div class="wrap">
+
+  <!-- ===== วันนี้ ===== -->
+  <section id="v-today" class="view active">
+    <div class="card">
+      <h2>🌙 Resin Tracker</h2>
+      <div class="resin-big"><span id="resinNow">0</span><small> / 200</small></div>
+      <div class="bar"><div id="resinBar" style="width:0%"></div></div>
+      <div class="mini" id="resinTime">เต็มแล้ว</div>
+      <div class="row" style="justify-content:center;margin-top:12px">
+        <button class="btn" onclick="addResin(-40)">−40</button>
+        <button class="btn" onclick="addResin(-20)">−20</button>
+        <button class="btn acc" onclick="setResin(200)">เต็ม</button>
+        <button class="btn" onclick="addResin(20)">+20</button>
+        <button class="btn" onclick="addResin(40)">+40</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Daily Checklist <span class="hint" style="margin:0">(รีเซ็ตอัตโนมัติทุกวัน)</span></h2>
+      <div id="checklist"></div>
+    </div>
+
+    <div class="card">
+      <h2>🏛️ โดเมนที่เปิดวันนี้ <span class="el" id="dayName" style="background:var(--acc2);color:#fff"></span></h2>
+      <div id="domains" class="hint">—</div>
+    </div>
+
+    <div class="card">
+      <h2>🎰 Wish Pity Tracker</h2>
+      <div class="hint" style="margin:0 0 6px">Character Banner (การันตี 5★ ที่ 90)</div>
+      <div class="resin-big" style="font-size:1.7rem"><span id="pityC">0</span><small> / 90</small></div>
+      <div class="bar"><div id="pityCBar"></div></div>
+      <div class="row" style="margin-top:6px">
+        <button class="btn" onclick="addPity(1)">+1 (จั่ว 1 ครั้ง)</button>
+        <button class="btn" onclick="addPity(10)">+10</button>
+        <button class="btn acc" onclick="resetPity()">ได้ตัว 5★ แล้ว (รีเซ็ต)</button>
+      </div>
+      <div id="pityMsg" class="hint" style="margin-top:8px"></div>
+    </div>
+  </section>
+
+  <!-- ===== ตัวละคร ===== -->
+  <section id="v-chars" class="view">
+    <div class="card">
+      <h2>👤 ตัวละครของฉัน</h2>
+      <div class="row" id="elFilter"></div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn on" data-own onclick="ownFilter('all',this)">ทั้งหมด</button>
+        <button class="btn" data-own onclick="ownFilter('yes',this)">มี ✓</button>
+        <button class="btn" data-own onclick="ownFilter('no',this)">ยังไม่มี</button>
+      </div>
+      <div class="hint" id="charCount"></div>
+    </div>
+    <div class="grid" id="charGrid"></div>
+  </section>
+
+  <!-- ===== ทีม ===== -->
+  <section id="v-teams" class="view">
+    <div class="card">
+      <h2>⚔️ Team Comps แนะนำ</h2>
+      <div class="hint">สีเขียว = มีตัวครบทีมแล้ว · สีแดง = ยังขาดตัวนี้ (อิงจากตัวที่คุณติ๊ก "มี" ในหน้าตัวละคร)</div>
+    </div>
+    <div id="teamList"></div>
+  </section>
+
+  <!-- ===== แผนที่ ===== -->
+  <section id="v-map" class="view">
+    <div class="card">
+      <h2>🗺️ แผนที่ Teyvat</h2>
+      <div class="hint" style="margin:0 0 10px">คลิกที่ภูมิภาคหรือจุดสีทองเพื่อดูวัตถุดิบที่ฟาร์มได้</div>
+      <div class="row" id="regFilter"></div>
+      <div class="mapwrap" style="margin-top:12px">
+        <svg viewBox="0 0 360 300" width="100%" id="teyvat"></svg>
+      </div>
+      <div class="popup" id="mapPopup"></div>
+    </div>
+  </section>
+
+  <!-- ===== บิลด์ ===== -->
+  <section id="v-builds" class="view">
+    <div class="card">
+      <h2>📖 Build Guide</h2>
+      <div class="bsel" id="buildSel"></div>
+      <div id="buildBody"></div>
+    </div>
+  </section>
+
+</div>
+
+<nav>
+  <button class="active" onclick="go('today',this)"><span class="ic">📅</span>วันนี้</button>
+  <button onclick="go('chars',this)"><span class="ic">👤</span>ตัวละคร</button>
+  <button onclick="go('teams',this)"><span class="ic">⚔️</span>ทีม</button>
+  <button onclick="go('map',this)"><span class="ic">🗺️</span>แผนที่</button>
+  <button onclick="go('builds',this)"><span class="ic">📖</span>บิลด์</button>
+</nav>
+
+<script>
+/* ============ DATA ============ */
+const ELS = ['Pyro','Hydro','Anemo','Electro','Cryo','Geo','Dendro'];
+const elColor = e => `var(--${e})`;
+
+const CHARS = [
+  {id:1, name:'Hu Tao',     el:'Pyro',    wpn:'Polearm',  stars:5, role:'Main DPS', owned:true},
+  {id:2, name:'Bennett',    el:'Pyro',    wpn:'Sword',    stars:4, role:'Support',  owned:true},
+  {id:3, name:'Xiangling',  el:'Pyro',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:true},
+  {id:4, name:'Diluc',      el:'Pyro',    wpn:'Claymore', stars:5, role:'Main DPS', owned:false},
+  {id:5, name:'Yoimiya',    el:'Pyro',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:6, name:'Childe',     el:'Hydro',   wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:7, name:'Xingqiu',    el:'Hydro',   wpn:'Sword',    stars:4, role:'Sub DPS',  owned:true},
+  {id:8, name:'Kokomi',     el:'Hydro',   wpn:'Catalyst', stars:5, role:'Healer',   owned:false},
+  {id:9, name:'Mona',       el:'Hydro',   wpn:'Catalyst', stars:5, role:'Support',  owned:true},
+  {id:10,name:'Yelan',      el:'Hydro',   wpn:'Bow',      stars:5, role:'Sub DPS',  owned:false},
+  {id:11,name:'Venti',      el:'Anemo',   wpn:'Bow',      stars:5, role:'Support',  owned:false},
+  {id:12,name:'Kazuha',     el:'Anemo',   wpn:'Sword',    stars:5, role:'Support',  owned:true},
+  {id:13,name:'Sucrose',    el:'Anemo',   wpn:'Catalyst', stars:4, role:'Support',  owned:true},
+  {id:14,name:'Jean',       el:'Anemo',   wpn:'Sword',    stars:5, role:'Healer',   owned:false},
+  {id:15,name:'Raiden',     el:'Electro', wpn:'Polearm',  stars:5, role:'Sub DPS',  owned:true},
+  {id:16,name:'Fischl',     el:'Electro', wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
+  {id:17,name:'Beidou',     el:'Electro', wpn:'Claymore', stars:4, role:'Sub DPS',  owned:true},
+  {id:18,name:'Keqing',     el:'Electro', wpn:'Sword',    stars:5, role:'Main DPS', owned:false},
+  {id:19,name:'Yae Miko',   el:'Electro', wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:false},
+  {id:20,name:'Ganyu',      el:'Cryo',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:21,name:'Ayaka',      el:'Cryo',    wpn:'Sword',    stars:5, role:'Main DPS', owned:true},
+  {id:22,name:'Diona',      el:'Cryo',    wpn:'Bow',      stars:4, role:'Healer',   owned:true},
+  {id:23,name:'Rosaria',    el:'Cryo',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:false},
+  {id:24,name:'Shenhe',     el:'Cryo',    wpn:'Polearm',  stars:5, role:'Support',  owned:false},
+  {id:25,name:'Zhongli',    el:'Geo',     wpn:'Polearm',  stars:5, role:'Support',  owned:true},
+  {id:26,name:'Albedo',     el:'Geo',     wpn:'Sword',    stars:5, role:'Sub DPS',  owned:false},
+  {id:27,name:'Ningguang',  el:'Geo',     wpn:'Catalyst', stars:4, role:'Sub DPS',  owned:true},
+  {id:28,name:'Noelle',     el:'Geo',     wpn:'Claymore', stars:4, role:'Main DPS', owned:true},
+  {id:29,name:'Tighnari',   el:'Dendro',  wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:30,name:'Nahida',     el:'Dendro',  wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:true},
+  {id:31,name:'Collei',     el:'Dendro',  wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
+];
+
+const TEAMS = [
+  {name:'🔥 Vaporize Hu Tao', desc:'ดาเมจสูง เหมาะกับ Single-target', members:['Hu Tao','Xingqiu','Zhongli','Kazuha']},
+  {name:'⚡ National Team',     desc:'ทีมคลาสสิก ใช้ตัว 4★ ได้ครบ ทรงพลัง', members:['Xiangling','Bennett','Xingqiu','Raiden']},
+  {name:'🌀 Raiden Hypercarry', desc:'Raiden เป็นแกนหลัก ปั่น Burst ไม่หยุด', members:['Raiden','Xiangling','Bennett','Kazuha']},
+  {name:'❄️ Ayaka Freeze',      desc:'แช่แข็งศัตรูถาวร คุมสนามได้ดี', members:['Ayaka','Kokomi','Shenhe','Kazuha']},
+  {name:'🌿 Hyperbloom',        desc:'ทีม Dendro ยอดฮิต ดาเมจ AoE โหด', members:['Nahida','Xingqiu','Raiden','Kokomi']},
+  {name:'🪨 Geo + Support',     desc:'เน้นโล่แน่น ตีหนัก ทนทาน', members:['Noelle','Zhongli','Albedo','Bennett']},
+];
+
+const BUILDS = {
+  'Hu Tao': {el:'Pyro', role:'Main DPS',
+    artifact:'Crimson Witch of Flames (4pc)', alt:"Shimenawa's Reminiscence (4pc)",
+    weapons:['Staff of Homa (ดีสุด)','Deathmatch (4★)',"Dragon's Bane (F2P)"],
+    mainStats:['Sands: HP%','Goblet: Pyro DMG%','Circlet: Crit Rate/DMG'],
+    subStats:['Crit Rate','Crit DMG','HP%','EM'],
+    talent:'Skill > Burst > Normal',
+    book:'Teachings of Diligence (อ., พฤ., อา.)',
+    tip:'🔑 เปิด Skill ก่อนแล้วค่อยตี Charged Attack\n🔑 เลือดต่ำกว่า 50% จะตีแรงขึ้น\n🔑 จับคู่ Xingqiu เพื่อ Vaporize'},
+  'Raiden': {el:'Electro', role:'Sub DPS / Battery',
+    artifact:'Emblem of Severed Fate (4pc)', alt:'—',
+    weapons:['Engulfing Lightning (ดีสุด)','The Catch (F2P ดีมาก)',"Wavebreaker's Fin (4★)"],
+    mainStats:['Sands: ER% หรือ ATK%','Goblet: Electro DMG%','Circlet: Crit Rate/DMG'],
+    subStats:['Crit Rate','Crit DMG','ER%','ATK%'],
+    talent:'Burst > Skill > Normal',
+    book:'Teachings of Light (จ., พฤ., อา.)',
+    tip:'🔑 ต้องการ Energy Recharge ~200-250%\n🔑 The Catch ตีฟรีแต่แรงเทียบเท่า 5★\n🔑 เปิด Skill ค้างไว้เพื่อบัฟทั้งทีม'},
+  'Bennett': {el:'Pyro', role:'Healer / Buffer',
+    artifact:'Noblesse Oblige (4pc)', alt:'Instructor (4pc) ถ้าจะเน้น EM',
+    weapons:['Aquila Favonia','Mistsplitter','The Black Sword (F2P)'],
+    mainStats:['Sands: ER% หรือ HP%','Goblet: HP% หรือ Heal','Circlet: Heal% หรือ Crit'],
+    subStats:['ER%','HP%','Crit'],
+    talent:'Burst > Skill > Normal',
+    book:'Teachings of Resistance (อ., ศ., อา.)',
+    tip:'🔑 Burst บัฟ ATK ทั้งทีม + ฮีล\n🔑 ต้องการ ER สูงเพื่อเปิด Burst ทุกรอบ\n🔑 ระวัง: บัฟ Pyro อาจไปกวน Cryo/Hydro บางทีม'},
+  'Nahida': {el:'Dendro', role:'Sub DPS / Enabler',
+    artifact:'Deepwood Memories (4pc)', alt:'Gilded Dreams (4pc)',
+    weapons:['A Thousand Floating Dreams','Sacrificial Fragments (F2P)','Wandering Evenstar'],
+    mainStats:['Sands: EM','Goblet: EM หรือ Dendro DMG%','Circlet: EM หรือ Crit'],
+    subStats:['EM','Crit Rate','Crit DMG','ER%'],
+    talent:'Skill > Burst > Normal',
+    book:'Teachings of Ingenuity (อ., ศ., อา.)',
+    tip:'🔑 EM สูงทำให้ปฏิกิริยา Dendro แรงมาก\n🔑 Deepwood ลด Dendro RES ศัตรู\n🔑 หัวใจของทีม Bloom / Hyperbloom / Quicken'},
+  'Ayaka': {el:'Cryo', role:'Main DPS',
+    artifact:'Blizzard Strayer (4pc)', alt:'—',
+    weapons:['Mistsplitter Reforged','Amenoma Kageuchi (F2P)','Black Sword'],
+    mainStats:['Sands: ATK%','Goblet: Cryo DMG%','Circlet: Crit Rate/DMG'],
+    subStats:['Crit Rate','Crit DMG','ATK%','ER%'],
+    talent:'Burst > Skill > Normal',
+    book:'Teachings of Elegance (อ., ศ., อา.)',
+    tip:'🔑 ในทีม Freeze ไม่ต้องลง Crit Rate เยอะ (เซ็ตช่วย)\n🔑 ดแดชเพื่อชาร์จ Cryo infusion\n🔑 จับคู่ Kokomi/Mona เพื่อแช่แข็งถาวร'},
+  'Zhongli': {el:'Geo', role:'Shield Support',
+    artifact:'Tenacity of the Millelith (4pc)', alt:'Archaic Petra (4pc)',
+    weapons:['Staff of Homa','Black Tassel (4★ ราคาถูก)','Favonius Lance'],
+    mainStats:['Sands: HP%','Goblet: HP%','Circlet: HP%'],
+    subStats:['HP%','ER%','Crit (ถ้าจะตี)'],
+    talent:'ไม่ต้องอัพมากก็ได้ (เน้นโล่)',
+    book:'Teachings of Gold (จ., พฤ., อา.)',
+    tip:'🔑 โล่อิงจาก HP สูงสุดของเขา\n🔑 โล่ลด RES ศัตรูทุกธาตุ\n🔑 ใส่ได้ทุกทีม เป็น Universal Support'},
+  'Ganyu': {el:'Cryo', role:'Main DPS',
+    artifact:"Wanderer's Troupe (4pc)", alt:'Blizzard Strayer (4pc) ในทีม Freeze',
+    weapons:["Amos' Bow",'Hamayumi (F2P)','Prototype Crescent'],
+    mainStats:['Sands: ATK%','Goblet: Cryo DMG%','Circlet: Crit Rate/DMG'],
+    subStats:['Crit Rate','Crit DMG','ATK%','EM'],
+    talent:'Normal (Charged) > Burst > Skill',
+    book:'Teachings of Diligence (อ., พฤ., อา.)',
+    tip:'🔑 ยิง Charged Attack ระดับ 2 (Frostflake Arrow)\n🔑 Melt build จับคู่ Pyro แรงสุด\n🔑 Burst วางคลุมพื้นที่ตีต่อเนื่อง'},
+  'Kazuha': {el:'Anemo', role:'Support / Buffer',
+    artifact:'Viridescent Venerer (4pc)', alt:'—',
+    weapons:['Freedom-Sworn','Iron Sting (4★ EM)',"Xiphos' Moonlight"],
+    mainStats:['Sands: EM','Goblet: EM','Circlet: EM'],
+    subStats:['EM','ER%','Crit'],
+    talent:'Burst = Skill > Normal',
+    book:'Teachings of Diligence (อ., พฤ., อา.)',
+    tip:'🔑 EM 1000 ขึ้นไปบัฟดาเมจธาตุทั้งทีม\n🔑 VV ลด RES ธาตุที่ swirl\n🔑 กดกระโดดหลัง Skill เพื่อ Plunge'},
+};
+
+const DOMAINS = {
+  0:['🔓 วันอาทิตย์ ทุกโดเมนเปิด ฟาร์มได้ทุกอย่าง'],
+  1:['Talent: Freedom · Prosperity · Transience','Weapon: Decarabian · Guyun · Distant Sea'],
+  2:['Talent: Resistance · Diligence · Elegance','Weapon: Boreal Wolf · Mist Veiled · Narukami'],
+  3:['Talent: Ballad · Gold · Light','Weapon: Gladiator · Aerosiderite · Mask'],
+  4:['Talent: Freedom · Prosperity · Transience','Weapon: Decarabian · Guyun · Distant Sea'],
+  5:['Talent: Resistance · Diligence · Elegance','Weapon: Boreal Wolf · Mist Veiled · Narukami'],
+  6:['Talent: Ballad · Gold · Light','Weapon: Gladiator · Aerosiderite · Mask'],
+};
+const DAYNAMES = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+const REGIONS = [
+  {id:'mond',    name:'Mondstadt', color:'var(--Anemo)',  pts:'30,70 100,55 120,120 55,140',
+    mat:'🌬️ Mondstadt: Cecilia, Windwheel Aster, Dandelion Seed, Philanemo Mushroom · Boss: Anemo Hypostasis'},
+  {id:'liyue',   name:'Liyue', color:'var(--Geo)',        pts:'120,120 190,100 205,185 130,195',
+    mat:'⛰️ Liyue: Glaze Lily, Silk Flower, Cor Lapis, Noctilucous Jade · Boss: Geo Hypostasis, Azhdaha'},
+  {id:'inazuma', name:'Inazuma', color:'var(--Electro)',  pts:'235,55 305,75 295,140 230,120',
+    mat:'⚡ Inazuma: Sea Ganoderma, Sakura Bloom, Naku Weed, Onikabuto · Boss: Raiden, Hydro/Electro'},
+  {id:'sumeru',  name:'Sumeru', color:'var(--Dendro)',    pts:'220,165 305,160 315,240 235,250',
+    mat:'🌿 Sumeru: Nilotpala Lotus, Padisarah, Scarab, Fungal Spores · Boss: Jadeplume, Apep'},
+  {id:'fontaine',name:'Fontaine', color:'var(--Hydro)',   pts:'25,170 100,165 110,235 35,245',
+    mat:'💧 Fontaine: Lumidouce Bell, Romaritime Flower, Subdetection Unit · Boss: Hydro Tulpa'},
+  {id:'natlan',  name:'Natlan', color:'var(--Pyro)',      pts:'150,215 225,215 220,285 155,285',
+    mat:'🔥 Natlan: Saurian Claw Succulent, Glowing Hornshroom, Brilliant Chrysanthemum'},
+];
+
+/* ============ STORAGE ============ */
+const LS = {
+  get:(k,d)=>{try{const v=JSON.parse(localStorage.getItem('gc_'+k));return v===null?d:v}catch(e){return d}},
+  set:(k,v)=>localStorage.setItem('gc_'+k,JSON.stringify(v))
+};
+const todayStr = ()=> new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD ตามเขตเวลาเครื่อง
+
+let resin = LS.get('resin',0);
+let owned = LS.get('owned', null);
+if(!owned){ owned = {}; CHARS.forEach(c=>owned[c.id]=c.owned); LS.set('owned',owned); }
+let pity = LS.get('pity',0);
+
+const TASKS = ['ทำ Commission 4 อัน','รับ Realm Currency (Teapot)','ใช้ Resin (Domain/Boss)','ส่งของ Expedition','รับ Daily ใน Battle Pass','ทำ Co-op / ช่วยเพื่อน'];
+let checkState = LS.get('check',{date:'',done:[]});
+if(checkState.date !== todayStr()){ checkState={date:todayStr(),done:[]}; LS.set('check',checkState); }
+
+/* ============ NAV ============ */
+function go(v,btn){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============ RESIN ============ */
+function renderResin(){
+  resin = Math.max(0,Math.min(200,resin));
+  document.getElementById('resinNow').textContent = resin;
+  document.getElementById('resinBar').style.width = (resin/200*100)+'%';
+  const need = 200-resin;
+  const mins = need*8;
+  document.getElementById('resinTime').textContent =
+    need<=0 ? '🌕 เต็มแล้ว!' : `อีก ${need} resin · เต็มในอีก ~${Math.floor(mins/60)} ชม. ${mins%60} นาที`;
+  LS.set('resin',resin);
+}
+function addResin(n){ resin+=n; renderResin(); }
+function setResin(n){ resin=n; renderResin(); }
+
+/* ============ CHECKLIST ============ */
+function renderCheck(){
+  const el = document.getElementById('checklist'); el.innerHTML='';
+  TASKS.forEach((t,i)=>{
+    const done = checkState.done.includes(i);
+    const d = document.createElement('div');
+    d.className='chk'+(done?' done':'');
+    d.innerHTML=`<div class="box">${done?'✓':''}</div><span>${t}</span>`;
+    d.onclick=()=>{
+      if(checkState.done.includes(i)) checkState.done=checkState.done.filter(x=>x!==i);
+      else checkState.done.push(i);
+      LS.set('check',checkState); renderCheck();
+    };
+    el.appendChild(d);
+  });
+}
+
+/* ============ DOMAINS ============ */
+function renderDomains(){
+  const d = new Date().getDay();
+  document.getElementById('dayName').textContent = 'วัน'+DAYNAMES[d];
+  document.getElementById('domains').innerHTML = DOMAINS[d].map(x=>'• '+x).join('<br>');
+}
+
+/* ============ PITY ============ */
+function renderPity(){
+  pity = Math.max(0,Math.min(90,pity));
+  document.getElementById('pityC').textContent = pity;
+  document.getElementById('pityCBar').style.width = (pity/90*100)+'%';
+  document.getElementById('pityMsg').textContent =
+    pity>=74 ? '🔥 เข้าเขต Soft Pity แล้ว! โอกาสออก 5★ สูงมาก'
+             : `อีก ${74-pity} ครั้งจะเข้า Soft Pity (เริ่มประมาณครั้งที่ 74)`;
+  LS.set('pity',pity);
+}
+function addPity(n){ pity+=n; renderPity(); }
+function resetPity(){ pity=0; renderPity(); }
+
+/* ============ CHARACTERS ============ */
+let filterEl='all', filterOwn='all';
+function buildElFilter(){
+  const f=document.getElementById('elFilter');
+  f.innerHTML='<button class="btn on" onclick="setEl(\'all\',this)">ทุกธาตุ</button>';
+  ELS.forEach(e=>{
+    f.innerHTML+=`<button class="btn" style="border-left:4px solid ${elColor(e)}" onclick="setEl('${e}',this)">${e}</button>`;
+  });
+}
+function setEl(e,btn){ filterEl=e; document.querySelectorAll('#elFilter .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChars(); }
+function ownFilter(o,btn){ filterOwn=o; document.querySelectorAll('[data-own]').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChars(); }
+function toggleOwn(id){ owned[id]=!owned[id]; LS.set('owned',owned); renderChars(); renderTeams(); }
+
+function renderChars(){
+  const g=document.getElementById('charGrid'); g.innerHTML='';
+  let shown=0, total=0;
+  CHARS.forEach(c=>{
+    const has = !!owned[c.id]; if(has) total++;
+    if(filterEl!=='all' && c.el!==filterEl) return;
+    if(filterOwn==='yes' && !has) return;
+    if(filterOwn==='no' && has) return;
+    shown++;
+    const d=document.createElement('div');
+    d.className='ch'+(has?'':' off');
+    d.innerHTML=`<div class="bar-el" style="background:${elColor(c.el)}"></div>
+      <div class="own">${has?'✅':'➕'}</div>
+      <div class="nm">${c.name}</div>
+      <div class="sub"><span class="el" style="background:${elColor(c.el)}33;color:${elColor(c.el)}">${c.el}</span> · ${c.wpn}</div>
+      <div class="sub">${c.role}</div>
+      <div class="stars">${'★'.repeat(c.stars)}</div>`;
+    d.onclick=()=>toggleOwn(c.id);
+    g.appendChild(d);
+  });
+  document.getElementById('charCount').textContent = `แสดง ${shown} ตัว · คุณมีทั้งหมด ${total} / ${CHARS.length} ตัว`;
+}
+
+/* ============ TEAMS ============ */
+function renderTeams(){
+  const list=document.getElementById('teamList'); list.innerHTML='';
+  const myNames = CHARS.filter(c=>owned[c.id]).map(c=>c.name);
+  TEAMS.forEach(t=>{
+    const miss = t.members.filter(m=>!myNames.includes(m));
+    const full = miss.length===0;
+    const d=document.createElement('div');
+    d.className='team'+(full?' full':'');
+    d.innerHTML=`<h3>${t.name}</h3>
+      <div class="hint" style="margin:0">${t.desc}</div>
+      <div class="tags">${t.members.map(m=>`<span class="tag ${myNames.includes(m)?'have':'miss'}">${m}</span>`).join('')}</div>
+      <div class="status">${full?'<span style="color:var(--ok)">✅ มีตัวครบทีมแล้ว!</span>':'<span style="color:var(--bad)">⚠️ ยังขาด: '+miss.join(', ')+'</span>'}</div>`;
+    list.appendChild(d);
+  });
+}
+
+/* ============ MAP ============ */
+let regFilter='all';
+function buildRegFilter(){
+  const f=document.getElementById('regFilter');
+  f.innerHTML='<button class="btn on" onclick="setReg(\'all\',this)">ทุกภูมิภาค</button>';
+  REGIONS.forEach(r=> f.innerHTML+=`<button class="btn" style="border-left:4px solid ${r.color}" onclick="setReg('${r.id}',this)">${r.name}</button>`);
+}
+function setReg(id,btn){ regFilter=id; document.querySelectorAll('#regFilter .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderMap(); document.getElementById('mapPopup').classList.remove('show'); }
+function renderMap(){
+  const svg=document.getElementById('teyvat'); svg.innerHTML='';
+  const NS='http://www.w3.org/2000/svg';
+  REGIONS.forEach(r=>{
+    if(regFilter!=='all' && r.id!==regFilter) return;
+    const poly=document.createElementNS(NS,'polygon');
+    poly.setAttribute('points',r.pts); poly.setAttribute('fill',r.color+'55'); poly.setAttribute('class','reg');
+    poly.onclick=()=>showPopup(r.name,r.mat);
+    svg.appendChild(poly);
+    const [fx,fy]=r.pts.split(' ')[0].split(',').map(Number);
+    const txt=document.createElementNS(NS,'text');
+    txt.setAttribute('x',fx+6); txt.setAttribute('y',fy+18); txt.setAttribute('fill','#fff'); txt.setAttribute('font-size','9'); txt.setAttribute('font-family','Kanit');
+    txt.textContent=r.name; svg.appendChild(txt);
+    // จุดวัตถุดิบกลางภูมิภาค
+    const cx=r.pts.split(' ').reduce((s,p)=>s+ +p.split(',')[0],0)/r.pts.split(' ').length;
+    const cy=r.pts.split(' ').reduce((s,p)=>s+ +p.split(',')[1],0)/r.pts.split(' ').length;
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',cx); c.setAttribute('cy',cy); c.setAttribute('r',6); c.setAttribute('class','dot');
+    c.onclick=()=>showPopup(r.name,r.mat); svg.appendChild(c);
+  });
+}
+function showPopup(name,mat){
+  const p=document.getElementById('mapPopup');
+  p.innerHTML=`<strong style="color:var(--acc)">📍 ${name}</strong><br><span style="font-size:.88rem">${mat}</span>`;
+  p.classList.add('show');
+}
+
+/* ============ BUILDS ============ */
+function buildBuildSel(){
+  const s=document.getElementById('buildSel');
+  Object.keys(BUILDS).forEach((n,i)=>{
+    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${n}</button>`;
+  });
+  showBuild(Object.keys(BUILDS)[0]);
+}
+function showBuild(n,btn){
+  if(btn){document.querySelectorAll('#buildSel .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on');}
+  const b=BUILDS[n];
+  document.getElementById('buildBody').innerHTML=`
+    <h3 style="margin-bottom:4px">${n} <span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${b.el}</span> <span class="hint" style="margin:0">${b.role}</span></h3>
+    <dl class="bd">
+      <dt>🛡️ Artifact Set</dt><dd>${b.artifact}<br><span class="hint" style="margin:0">สำรอง: ${b.alt}</span></dd>
+      <dt>⚔️ อาวุธ (เรียงจากดีสุด)</dt><dd>${b.weapons.map(w=>`<div class="li">${w}</div>`).join('')}</dd>
+      <dt>📊 Main Stats</dt><dd>${b.mainStats.map(s=>`<div class="li">${s}</div>`).join('')}</dd>
+      <dt>📈 Sub Stats (ลำดับความสำคัญ)</dt><dd>${b.subStats.join(' › ')}</dd>
+      <dt>🎯 ลำดับอัพ Talent</dt><dd>${b.talent}</dd>
+      <dt>📚 Talent Book</dt><dd>${b.book}</dd>
+      <dt>💡 Tips</dt><dd><div class="tipbox">${b.tip}</div></dd>
+    </dl>`;
+}
+
+/* ============ INIT ============ */
+renderResin(); renderCheck(); renderDomains(); renderPity();
+buildElFilter(); renderChars(); renderTeams();
+buildRegFilter(); renderMap(); buildBuildSel();
+</script>
+</body>
+</html>
