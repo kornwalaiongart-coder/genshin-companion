@@ -482,13 +482,14 @@ function renderChars(){
 }
 
 /* ============ โหลดตัวละครครบทุกตัวจาก Enka.Network ============ */
+function rosterNote(msg){ const n=document.getElementById('rosterNote'); if(n) n.innerHTML=msg; }
 async function loadFullRoster(){
   try{
     const [cRes,lRes] = await Promise.all([
       fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/characters.json'),
       fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/loc.json')
     ]);
-    if(!cRes.ok || !lRes.ok) return;
+    if(!cRes.ok || !lRes.ok){ rosterNote('⚠️ โหลดฐานข้อมูลตัวละครไม่ได้ — แสดงรายชื่อสำรอง 31 ตัว'); return; }
     const data = await cRes.json(), loc = await lRes.json();
     const en = loc.en||{}, th = loc.th||loc.en||{};
     const elMap  = {Fire:'Pyro',Water:'Hydro',Wind:'Anemo',Electric:'Electro',Ice:'Cryo',Rock:'Geo',Grass:'Dendro'};
@@ -496,14 +497,17 @@ async function loadFullRoster(){
     // เก็บ role + ชื่อไทยที่แปลเอง ของ 31 ตัวยอดนิยมไว้ก่อนแทนรายชื่อ
     const roleByAid = {}, thByAid = {};
     CHARS.forEach(c=>{ if(c.role) roleByAid[c.aid]=c.role; if(c.th && c.th!==c.name) thByAid[c.aid]=c.th; });
-    const list = [];
-    for(const k in data){
-      if(k.indexOf('-')>=0) continue;                 // ข้ามตัวแปร Traveler
+    const list = [], seenName = new Set();
+    // เรียง avatarId จากน้อยไปมาก เพื่อให้ "ตัวจริง" มาก่อน "ตัวเบต้า/ทดสอบ" (id สูงกว่า)
+    const keys = Object.keys(data).filter(k=>k.indexOf('-')<0).sort((a,b)=>+a-+b);
+    for(const k of keys){
       const info = data[k]; if(!info || !info.NameTextMapHash) continue;
       const q = info.QualityType;
       if(q!=='QUALITY_ORANGE' && q!=='QUALITY_ORANGE_SP' && q!=='QUALITY_PURPLE') continue;
       const el = elMap[info.Element]; if(!el) continue;
       const nameEn = en[info.NameTextMapHash]; if(!nameEn) continue;
+      if(seenName.has(nameEn)) continue;              // ข้ามตัวซ้ำชื่อ (เก็บตัวจริงตัวแรก)
+      seenName.add(nameEn);
       const aid = +k;
       list.push({
         aid, name:nameEn, th:(thByAid[aid] || th[info.NameTextMapHash] || nameEn), el,
@@ -512,12 +516,13 @@ async function loadFullRoster(){
         role:roleByAid[aid]
       });
     }
-    if(list.length < 40) return;                       // ข้อมูลไม่สมบูรณ์ -> ใช้รายชื่อสำรอง
+    if(list.length < 40){ rosterNote('⚠️ ข้อมูลไม่สมบูรณ์ — แสดงรายชื่อสำรอง 31 ตัว'); return; }
     list.sort((a,b)=> b.stars-a.stars || a.el.localeCompare(b.el) || a.name.localeCompare(b.name));
     CHARS = list; rebuildMaps(); renderChars(); renderTeams();
-    const note = document.getElementById('rosterNote');
-    if(note) note.textContent = `✅ โหลดตัวละครครบ ${CHARS.length} ตัวจากเกมแล้ว`;
-  }catch(e){ /* ออฟไลน์/บล็อก -> ใช้รายชื่อสำรอง 31 ตัว */ }
+    rosterNote(`✅ โหลดตัวละครครบ ${CHARS.length} ตัวจากเกมแล้ว (ไม่มีตัวซ้ำ)`);
+  }catch(e){
+    rosterNote('⚠️ เชื่อมต่อฐานข้อมูลไม่ได้ (ออฟไลน์/CORS) — แสดงรายชื่อสำรอง 31 ตัว<br><span style="opacity:.7">ลองเปิดผ่าน GitHub Pages</span>');
+  }
 }
 
 /* ============ ดึงข้อมูลจาก UID (Enka.Network) ============ */
