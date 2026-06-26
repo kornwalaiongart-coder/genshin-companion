@@ -60,8 +60,10 @@ nav button.active{color:var(--acc)}
 .ch .nm{font-weight:600;font-size:.92rem}
 .ch .sub{color:var(--mut);font-size:.74rem;margin-top:3px}
 .ch .stars{color:var(--acc);font-size:.72rem;margin-top:5px}
-.ch .own{position:absolute;top:8px;right:8px;font-size:.85rem}
-.bar-el{position:absolute;left:0;top:0;bottom:0;width:5px}
+.ch .own{position:absolute;top:8px;right:8px;font-size:.95rem;background:rgba(15,16,32,.6);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center}
+.ch .port{width:100%;aspect-ratio:1;border-radius:10px;overflow:hidden;margin-bottom:8px;display:flex;align-items:flex-end;justify-content:center;border:1px solid var(--line);position:relative}
+.ch .port img{width:100%;height:100%;object-fit:cover;object-position:top}
+.bar-el{position:absolute;left:0;top:0;bottom:0;width:5px;z-index:2}
 
 .team{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px}
 .team.full{border-color:var(--ok)}
@@ -252,6 +254,12 @@ const CHARS = [
 // แผนที่ ชื่ออังกฤษ -> ชื่อไทย (ใช้ในหน้าทีม/บิลด์)
 const NAME_TH = {}; CHARS.forEach(c=>NAME_TH[c.name]=c.th);
 const trName = n => NAME_TH[n] ? `${NAME_TH[n]} (${n})` : n;
+
+// ชื่อไฟล์รูปไอคอนของแต่ละตัว (รูปจาก Enka.Network CDN) — บางตัวชื่อภายในเกมไม่ตรงกับชื่อโชว์
+const ICON = {
+  'Hu Tao':'Hutao','Childe':'Tartaglia','Jean':'Qin','Raiden':'Shougun','Yae Miko':'Yae','Noelle':'Noel'
+};
+const iconURL = name => `https://enka.network/ui/UI_AvatarIcon_${ICON[name]||name.replace(/\s/g,'')}.png`;
 
 // แผนที่ avatarId ของ Genshin -> id ตัวละครในระบบเรา (สำหรับดึงข้อมูลจาก UID ผ่าน Enka.Network)
 const AID = {
@@ -465,6 +473,9 @@ function renderChars(){
     d.className='ch'+(has?'':' off');
     d.innerHTML=`<div class="bar-el" style="background:${elColor(c.el)}"></div>
       <div class="own">${has?'✅':'➕'}</div>
+      <div class="port" style="background:linear-gradient(160deg,${elColor(c.el)}44,var(--card))">
+        <img src="${iconURL(c.name)}" alt="${c.name}" loading="lazy" onerror="this.remove()">
+      </div>
       <div class="nm">${c.name}</div>
       <div class="sub" style="font-size:.72rem;opacity:.75">${c.th}</div>
       <div class="sub"><span class="el" style="background:${elColor(c.el)}33;color:${elColor(c.el)}">${trEl(c.el)}</span> · ${trWpn(c.wpn)}</div>
@@ -574,7 +585,12 @@ function showBuild(n,btn){
   if(btn){document.querySelectorAll('#buildSel .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on');}
   const b=BUILDS[n];
   document.getElementById('buildBody').innerHTML=`
-    <h3 style="margin-bottom:4px">${NAME_TH[n]||n} <span class="hint" style="margin:0;font-size:.78rem">${n}</span> <span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+      <div style="width:62px;height:62px;border-radius:12px;overflow:hidden;flex-shrink:0;background:linear-gradient(160deg,${elColor(b.el)}44,var(--card));border:1px solid var(--line)">
+        <img src="${iconURL(n)}" alt="${n}" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;object-position:top">
+      </div>
+      <h3 style="margin:0">${NAME_TH[n]||n} <span class="hint" style="margin:0;font-size:.78rem">${n}</span><br><span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
+    </div>
     <dl class="bd">
       <dt>🛡️ Artifact Set</dt><dd>${b.artifact}<br><span class="hint" style="margin:0">สำรอง: ${b.alt}</span></dd>
       <dt>⚔️ อาวุธ (เรียงจากดีสุด)</dt><dd>${b.weapons.map(w=>`<div class="li">${w}</div>`).join('')}</dd>
