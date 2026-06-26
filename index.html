@@ -481,45 +481,43 @@ function renderChars(){
   document.getElementById('charCount').textContent = `แสดง ${shown} ตัว · มีทั้งหมด ${totalOwned} / ${CHARS.length} ตัว`;
 }
 
-/* ============ โหลดตัวละครครบทุกตัวจาก Enka.Network ============ */
+/* ============ โหลดตัวละครครบทุกตัวจาก Ambr (gi.yatta.moe) ============ */
 function rosterNote(msg){ const n=document.getElementById('rosterNote'); if(n) n.innerHTML=msg; }
+// Traveler ตัวเอก (Ambr ไม่ส่งร่างหลักมาตรง ๆ จึงเพิ่มเองให้ครบ)
+const TRAVELERS = [
+  {aid:10000005, name:'Aether',  th:'อีথอร์ (พระเอก)', el:'Anemo', wpn:'Sword', stars:5, ic:'PlayerBoy'},
+  {aid:10000007, name:'Lumine',  th:'ลูมิน (นางเอก)',  el:'Anemo', wpn:'Sword', stars:5, ic:'PlayerGirl'},
+];
 async function loadFullRoster(){
   try{
-    const [cRes,lRes] = await Promise.all([
-      fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/characters.json'),
-      fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/loc.json')
-    ]);
-    if(!cRes.ok || !lRes.ok){ rosterNote('⚠️ โหลดฐานข้อมูลตัวละครไม่ได้ — แสดงรายชื่อสำรอง 31 ตัว'); return; }
-    const data = await cRes.json(), loc = await lRes.json();
-    const en = loc.en||{}, th = loc.th||loc.en||{};
+    const res = await fetch('https://gi.yatta.moe/api/v2/th/avatar');
+    if(!res.ok){ rosterNote('⚠️ โหลดฐานข้อมูลตัวละครไม่ได้ — แสดงรายชื่อสำรอง 31 ตัว'); return; }
+    const json = await res.json();
+    const items = json && json.data && json.data.items;
+    if(!items){ rosterNote('⚠️ ข้อมูลไม่ถูกต้อง — แสดงรายชื่อสำรอง 31 ตัว'); return; }
     const elMap  = {Fire:'Pyro',Water:'Hydro',Wind:'Anemo',Electric:'Electro',Ice:'Cryo',Rock:'Geo',Grass:'Dendro'};
     const wpnMap = {WEAPON_SWORD_ONE_HAND:'Sword',WEAPON_POLE:'Polearm',WEAPON_CLAYMORE:'Claymore',WEAPON_BOW:'Bow',WEAPON_CATALYST:'Catalyst'};
     // เก็บ role + ชื่อไทยที่แปลเอง ของ 31 ตัวยอดนิยมไว้ก่อนแทนรายชื่อ
     const roleByAid = {}, thByAid = {};
     CHARS.forEach(c=>{ if(c.role) roleByAid[c.aid]=c.role; if(c.th && c.th!==c.name) thByAid[c.aid]=c.th; });
-    const list = [], seenName = new Set();
-    // เรียง avatarId จากน้อยไปมาก เพื่อให้ "ตัวจริง" มาก่อน "ตัวเบต้า/ทดสอบ" (id สูงกว่า)
-    const keys = Object.keys(data).filter(k=>k.indexOf('-')<0).sort((a,b)=>+a-+b);
-    for(const k of keys){
-      const info = data[k]; if(!info || !info.NameTextMapHash) continue;
-      const q = info.QualityType;
-      if(q!=='QUALITY_ORANGE' && q!=='QUALITY_ORANGE_SP' && q!=='QUALITY_PURPLE') continue;
-      const el = elMap[info.Element]; if(!el) continue;
-      const nameEn = en[info.NameTextMapHash]; if(!nameEn) continue;
-      if(seenName.has(nameEn)) continue;              // ข้ามตัวซ้ำชื่อ (เก็บตัวจริงตัวแรก)
-      seenName.add(nameEn);
-      const aid = +k;
+    const list = [];
+    for(const key in items){
+      if(key.indexOf('-')>=0) continue;                 // ข้ามร่างธาตุต่าง ๆ ของ Traveler
+      const it = items[key];
+      const el = elMap[it.element]; if(!el) continue;    // ข้ามหุ่น/ตัวที่ไม่มีธาตุ (ไม่ใช่ตัวละครจริง)
+      const aid = +key;
       list.push({
-        aid, name:nameEn, th:(thByAid[aid] || th[info.NameTextMapHash] || nameEn), el,
-        wpn:wpnMap[info.WeaponType]||'', stars:(q==='QUALITY_PURPLE'?4:5),
-        ic:(info.SideIconName||'').replace('UI_AvatarIcon_Side_',''),
+        aid, name:it.name, th:(thByAid[aid] || it.name), el,
+        wpn:wpnMap[it.weaponType]||'', stars:it.rank||5,
+        ic:(it.icon||'').replace('UI_AvatarIcon_',''),
         role:roleByAid[aid]
       });
     }
     if(list.length < 40){ rosterNote('⚠️ ข้อมูลไม่สมบูรณ์ — แสดงรายชื่อสำรอง 31 ตัว'); return; }
+    TRAVELERS.forEach(t=>list.push({...t}));             // เพิ่ม Traveler ชาย/หญิง
     list.sort((a,b)=> b.stars-a.stars || a.el.localeCompare(b.el) || a.name.localeCompare(b.name));
     CHARS = list; rebuildMaps(); renderChars(); renderTeams();
-    rosterNote(`✅ โหลดตัวละครครบ ${CHARS.length} ตัวจากเกมแล้ว (ไม่มีตัวซ้ำ)`);
+    rosterNote(`✅ โหลดตัวละครครบ ${CHARS.length} ตัว (ทุกตัวในเกม รวม Traveler)`);
   }catch(e){
     rosterNote('⚠️ เชื่อมต่อฐานข้อมูลไม่ได้ (ออฟไลน์/CORS) — แสดงรายชื่อสำรอง 31 ตัว<br><span style="opacity:.7">ลองเปิดผ่าน GitHub Pages</span>');
   }
