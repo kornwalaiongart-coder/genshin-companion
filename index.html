@@ -198,39 +198,50 @@ svg .reg:hover{filter:brightness(1.3)}
 const ELS = ['Pyro','Hydro','Anemo','Electro','Cryo','Geo','Dendro'];
 const elColor = e => `var(--${e})`;
 
+// ===== ตารางคำแปลภาษาไทย =====
+const EL_TH   = {Pyro:'ไฟ', Hydro:'น้ำ', Anemo:'ลม', Electro:'ไฟฟ้า', Cryo:'น้ำแข็ง', Geo:'หิน', Dendro:'ไม้'};
+const WPN_TH  = {Sword:'ดาบ', Polearm:'หอก', Claymore:'ดาบสองมือ', Bow:'ธนู', Catalyst:'คาถา'};
+const ROLE_TH = {'Main DPS':'ตัวตีหลัก', 'Sub DPS':'ตัวตีเสริม', 'Support':'ซัพพอร์ต', 'Healer':'ฮีลเลอร์', 'Support / Buffer':'ซัพพอร์ต/บัฟ', 'Sub DPS / Battery':'ตัวตีเสริม/ปั่นพลัง', 'Healer / Buffer':'ฮีลเลอร์/บัฟ', 'Sub DPS / Enabler':'ตัวตีเสริม/ตั้งธาตุ', 'Shield Support':'ซัพพอร์ตโล่'};
+const trEl   = e => `${EL_TH[e]||e}`;
+const trWpn  = w => `${WPN_TH[w]||w}`;
+const trRole = r => `${ROLE_TH[r]||r}`;
+
 const CHARS = [
-  {id:1, name:'Hu Tao',     el:'Pyro',    wpn:'Polearm',  stars:5, role:'Main DPS', owned:true},
-  {id:2, name:'Bennett',    el:'Pyro',    wpn:'Sword',    stars:4, role:'Support',  owned:true},
-  {id:3, name:'Xiangling',  el:'Pyro',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:true},
-  {id:4, name:'Diluc',      el:'Pyro',    wpn:'Claymore', stars:5, role:'Main DPS', owned:false},
-  {id:5, name:'Yoimiya',    el:'Pyro',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:6, name:'Childe',     el:'Hydro',   wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:7, name:'Xingqiu',    el:'Hydro',   wpn:'Sword',    stars:4, role:'Sub DPS',  owned:true},
-  {id:8, name:'Kokomi',     el:'Hydro',   wpn:'Catalyst', stars:5, role:'Healer',   owned:false},
-  {id:9, name:'Mona',       el:'Hydro',   wpn:'Catalyst', stars:5, role:'Support',  owned:true},
-  {id:10,name:'Yelan',      el:'Hydro',   wpn:'Bow',      stars:5, role:'Sub DPS',  owned:false},
-  {id:11,name:'Venti',      el:'Anemo',   wpn:'Bow',      stars:5, role:'Support',  owned:false},
-  {id:12,name:'Kazuha',     el:'Anemo',   wpn:'Sword',    stars:5, role:'Support',  owned:true},
-  {id:13,name:'Sucrose',    el:'Anemo',   wpn:'Catalyst', stars:4, role:'Support',  owned:true},
-  {id:14,name:'Jean',       el:'Anemo',   wpn:'Sword',    stars:5, role:'Healer',   owned:false},
-  {id:15,name:'Raiden',     el:'Electro', wpn:'Polearm',  stars:5, role:'Sub DPS',  owned:true},
-  {id:16,name:'Fischl',     el:'Electro', wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
-  {id:17,name:'Beidou',     el:'Electro', wpn:'Claymore', stars:4, role:'Sub DPS',  owned:true},
-  {id:18,name:'Keqing',     el:'Electro', wpn:'Sword',    stars:5, role:'Main DPS', owned:false},
-  {id:19,name:'Yae Miko',   el:'Electro', wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:false},
-  {id:20,name:'Ganyu',      el:'Cryo',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:21,name:'Ayaka',      el:'Cryo',    wpn:'Sword',    stars:5, role:'Main DPS', owned:true},
-  {id:22,name:'Diona',      el:'Cryo',    wpn:'Bow',      stars:4, role:'Healer',   owned:true},
-  {id:23,name:'Rosaria',    el:'Cryo',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:false},
-  {id:24,name:'Shenhe',     el:'Cryo',    wpn:'Polearm',  stars:5, role:'Support',  owned:false},
-  {id:25,name:'Zhongli',    el:'Geo',     wpn:'Polearm',  stars:5, role:'Support',  owned:true},
-  {id:26,name:'Albedo',     el:'Geo',     wpn:'Sword',    stars:5, role:'Sub DPS',  owned:false},
-  {id:27,name:'Ningguang',  el:'Geo',     wpn:'Catalyst', stars:4, role:'Sub DPS',  owned:true},
-  {id:28,name:'Noelle',     el:'Geo',     wpn:'Claymore', stars:4, role:'Main DPS', owned:true},
-  {id:29,name:'Tighnari',   el:'Dendro',  wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:30,name:'Nahida',     el:'Dendro',  wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:true},
-  {id:31,name:'Collei',     el:'Dendro',  wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
+  {id:1, name:'Hu Tao',    th:'หูเทา',       el:'Pyro',    wpn:'Polearm',  stars:5, role:'Main DPS', owned:true},
+  {id:2, name:'Bennett',   th:'เบนเนตต์',    el:'Pyro',    wpn:'Sword',    stars:4, role:'Support',  owned:true},
+  {id:3, name:'Xiangling', th:'เซียงหลิง',   el:'Pyro',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:true},
+  {id:4, name:'Diluc',     th:'ดิลุค',       el:'Pyro',    wpn:'Claymore', stars:5, role:'Main DPS', owned:false},
+  {id:5, name:'Yoimiya',   th:'โยอิมิยะ',    el:'Pyro',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:6, name:'Childe',    th:'ไชลด์',       el:'Hydro',   wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:7, name:'Xingqiu',   th:'ซิงชิว',      el:'Hydro',   wpn:'Sword',    stars:4, role:'Sub DPS',  owned:true},
+  {id:8, name:'Kokomi',    th:'โคโคมิ',      el:'Hydro',   wpn:'Catalyst', stars:5, role:'Healer',   owned:false},
+  {id:9, name:'Mona',      th:'โมนา',        el:'Hydro',   wpn:'Catalyst', stars:5, role:'Support',  owned:true},
+  {id:10,name:'Yelan',     th:'เยลาน',       el:'Hydro',   wpn:'Bow',      stars:5, role:'Sub DPS',  owned:false},
+  {id:11,name:'Venti',     th:'เวนตี้',      el:'Anemo',   wpn:'Bow',      stars:5, role:'Support',  owned:false},
+  {id:12,name:'Kazuha',    th:'คาซึฮะ',      el:'Anemo',   wpn:'Sword',    stars:5, role:'Support',  owned:true},
+  {id:13,name:'Sucrose',   th:'ซูโครส',      el:'Anemo',   wpn:'Catalyst', stars:4, role:'Support',  owned:true},
+  {id:14,name:'Jean',      th:'จีน',         el:'Anemo',   wpn:'Sword',    stars:5, role:'Healer',   owned:false},
+  {id:15,name:'Raiden',    th:'ไรเดน',       el:'Electro', wpn:'Polearm',  stars:5, role:'Sub DPS',  owned:true},
+  {id:16,name:'Fischl',    th:'ฟิชเชิล',     el:'Electro', wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
+  {id:17,name:'Beidou',    th:'เป๋ยโต่ว',    el:'Electro', wpn:'Claymore', stars:4, role:'Sub DPS',  owned:true},
+  {id:18,name:'Keqing',    th:'เค่อชิง',     el:'Electro', wpn:'Sword',    stars:5, role:'Main DPS', owned:false},
+  {id:19,name:'Yae Miko',  th:'ยาเอะ มิโกะ', el:'Electro', wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:false},
+  {id:20,name:'Ganyu',     th:'กานอวี๋',     el:'Cryo',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:21,name:'Ayaka',     th:'อายากะ',      el:'Cryo',    wpn:'Sword',    stars:5, role:'Main DPS', owned:true},
+  {id:22,name:'Diona',     th:'ไดโอนา',      el:'Cryo',    wpn:'Bow',      stars:4, role:'Healer',   owned:true},
+  {id:23,name:'Rosaria',   th:'โรซาเรีย',    el:'Cryo',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:false},
+  {id:24,name:'Shenhe',    th:'เสิ่นเหอ',    el:'Cryo',    wpn:'Polearm',  stars:5, role:'Support',  owned:false},
+  {id:25,name:'Zhongli',   th:'จงหลี',       el:'Geo',     wpn:'Polearm',  stars:5, role:'Support',  owned:true},
+  {id:26,name:'Albedo',    th:'อัลเบโด',     el:'Geo',     wpn:'Sword',    stars:5, role:'Sub DPS',  owned:false},
+  {id:27,name:'Ningguang', th:'หนิงกวง',     el:'Geo',     wpn:'Catalyst', stars:4, role:'Sub DPS',  owned:true},
+  {id:28,name:'Noelle',    th:'โนเอลล์',     el:'Geo',     wpn:'Claymore', stars:4, role:'Main DPS', owned:true},
+  {id:29,name:'Tighnari',  th:'ทิกนารี',     el:'Dendro',  wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
+  {id:30,name:'Nahida',    th:'นาฮิดะ',      el:'Dendro',  wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:true},
+  {id:31,name:'Collei',    th:'คอลเลย์',     el:'Dendro',  wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
 ];
+// แผนที่ ชื่ออังกฤษ -> ชื่อไทย (ใช้ในหน้าทีม/บิลด์)
+const NAME_TH = {}; CHARS.forEach(c=>NAME_TH[c.name]=c.th);
+const trName = n => NAME_TH[n] ? `${NAME_TH[n]} (${n})` : n;
 
 const TEAMS = [
   {name:'🔥 Vaporize Hu Tao', desc:'ดาเมจสูง เหมาะกับ Single-target', members:['Hu Tao','Xingqiu','Zhongli','Kazuha']},
@@ -416,7 +427,7 @@ function buildElFilter(){
   const f=document.getElementById('elFilter');
   f.innerHTML='<button class="btn on" onclick="setEl(\'all\',this)">ทุกธาตุ</button>';
   ELS.forEach(e=>{
-    f.innerHTML+=`<button class="btn" style="border-left:4px solid ${elColor(e)}" onclick="setEl('${e}',this)">${e}</button>`;
+    f.innerHTML+=`<button class="btn" style="border-left:4px solid ${elColor(e)}" onclick="setEl('${e}',this)">${EL_TH[e]}</button>`;
   });
 }
 function setEl(e,btn){ filterEl=e; document.querySelectorAll('#elFilter .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChars(); }
@@ -436,9 +447,10 @@ function renderChars(){
     d.className='ch'+(has?'':' off');
     d.innerHTML=`<div class="bar-el" style="background:${elColor(c.el)}"></div>
       <div class="own">${has?'✅':'➕'}</div>
-      <div class="nm">${c.name}</div>
-      <div class="sub"><span class="el" style="background:${elColor(c.el)}33;color:${elColor(c.el)}">${c.el}</span> · ${c.wpn}</div>
-      <div class="sub">${c.role}</div>
+      <div class="nm">${c.th}</div>
+      <div class="sub" style="font-size:.68rem;opacity:.7">${c.name}</div>
+      <div class="sub"><span class="el" style="background:${elColor(c.el)}33;color:${elColor(c.el)}">${trEl(c.el)}</span> · ${trWpn(c.wpn)}</div>
+      <div class="sub">${trRole(c.role)}</div>
       <div class="stars">${'★'.repeat(c.stars)}</div>`;
     d.onclick=()=>toggleOwn(c.id);
     g.appendChild(d);
@@ -457,8 +469,8 @@ function renderTeams(){
     d.className='team'+(full?' full':'');
     d.innerHTML=`<h3>${t.name}</h3>
       <div class="hint" style="margin:0">${t.desc}</div>
-      <div class="tags">${t.members.map(m=>`<span class="tag ${myNames.includes(m)?'have':'miss'}">${m}</span>`).join('')}</div>
-      <div class="status">${full?'<span style="color:var(--ok)">✅ มีตัวครบทีมแล้ว!</span>':'<span style="color:var(--bad)">⚠️ ยังขาด: '+miss.join(', ')+'</span>'}</div>`;
+      <div class="tags">${t.members.map(m=>`<span class="tag ${myNames.includes(m)?'have':'miss'}">${NAME_TH[m]||m}</span>`).join('')}</div>
+      <div class="status">${full?'<span style="color:var(--ok)">✅ มีตัวครบทีมแล้ว!</span>':'<span style="color:var(--bad)">⚠️ ยังขาด: '+miss.map(m=>NAME_TH[m]||m).join(', ')+'</span>'}</div>`;
     list.appendChild(d);
   });
 }
@@ -502,7 +514,7 @@ function showPopup(name,mat){
 function buildBuildSel(){
   const s=document.getElementById('buildSel');
   Object.keys(BUILDS).forEach((n,i)=>{
-    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${n}</button>`;
+    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${NAME_TH[n]||n}</button>`;
   });
   showBuild(Object.keys(BUILDS)[0]);
 }
@@ -510,7 +522,7 @@ function showBuild(n,btn){
   if(btn){document.querySelectorAll('#buildSel .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on');}
   const b=BUILDS[n];
   document.getElementById('buildBody').innerHTML=`
-    <h3 style="margin-bottom:4px">${n} <span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${b.el}</span> <span class="hint" style="margin:0">${b.role}</span></h3>
+    <h3 style="margin-bottom:4px">${NAME_TH[n]||n} <span class="hint" style="margin:0;font-size:.78rem">${n}</span> <span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
     <dl class="bd">
       <dt>🛡️ Artifact Set</dt><dd>${b.artifact}<br><span class="hint" style="margin:0">สำรอง: ${b.alt}</span></dd>
       <dt>⚔️ อาวุธ (เรียงจากดีสุด)</dt><dd>${b.weapons.map(w=>`<div class="li">${w}</div>`).join('')}</dd>
