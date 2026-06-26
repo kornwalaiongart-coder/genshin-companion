@@ -160,6 +160,7 @@ svg .reg:hover{filter:brightness(1.3)}
         <button class="btn" data-own onclick="ownFilter('no',this)">ยังไม่มี</button>
       </div>
       <div class="hint" id="charCount"></div>
+      <div class="hint" id="rosterNote" style="margin-top:2px">⏳ กำลังโหลดตัวละครทั้งหมดจากเกม...</div>
     </div>
     <div class="grid" id="charGrid"></div>
   </section>
@@ -218,65 +219,58 @@ const trEl   = e => `${EL_TH[e]||e}`;
 const trWpn  = w => `${WPN_TH[w]||w}`;
 const trRole = r => `${ROLE_TH[r]||r}`;
 
-const CHARS = [
-  {id:1, name:'Hu Tao',    th:'หูเทา',       el:'Pyro',    wpn:'Polearm',  stars:5, role:'Main DPS', owned:true},
-  {id:2, name:'Bennett',   th:'เบนเนตต์',    el:'Pyro',    wpn:'Sword',    stars:4, role:'Support',  owned:true},
-  {id:3, name:'Xiangling', th:'เซียงหลิง',   el:'Pyro',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:true},
-  {id:4, name:'Diluc',     th:'ดิลุค',       el:'Pyro',    wpn:'Claymore', stars:5, role:'Main DPS', owned:false},
-  {id:5, name:'Yoimiya',   th:'โยอิมิยะ',    el:'Pyro',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:6, name:'Childe',    th:'ไชลด์',       el:'Hydro',   wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:7, name:'Xingqiu',   th:'ซิงชิว',      el:'Hydro',   wpn:'Sword',    stars:4, role:'Sub DPS',  owned:true},
-  {id:8, name:'Kokomi',    th:'โคโคมิ',      el:'Hydro',   wpn:'Catalyst', stars:5, role:'Healer',   owned:false},
-  {id:9, name:'Mona',      th:'โมนา',        el:'Hydro',   wpn:'Catalyst', stars:5, role:'Support',  owned:true},
-  {id:10,name:'Yelan',     th:'เยลาน',       el:'Hydro',   wpn:'Bow',      stars:5, role:'Sub DPS',  owned:false},
-  {id:11,name:'Venti',     th:'เวนตี้',      el:'Anemo',   wpn:'Bow',      stars:5, role:'Support',  owned:false},
-  {id:12,name:'Kazuha',    th:'คาซึฮะ',      el:'Anemo',   wpn:'Sword',    stars:5, role:'Support',  owned:true},
-  {id:13,name:'Sucrose',   th:'ซูโครส',      el:'Anemo',   wpn:'Catalyst', stars:4, role:'Support',  owned:true},
-  {id:14,name:'Jean',      th:'จีน',         el:'Anemo',   wpn:'Sword',    stars:5, role:'Healer',   owned:false},
-  {id:15,name:'Raiden',    th:'ไรเดน',       el:'Electro', wpn:'Polearm',  stars:5, role:'Sub DPS',  owned:true},
-  {id:16,name:'Fischl',    th:'ฟิชเชิล',     el:'Electro', wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
-  {id:17,name:'Beidou',    th:'เป๋ยโต่ว',    el:'Electro', wpn:'Claymore', stars:4, role:'Sub DPS',  owned:true},
-  {id:18,name:'Keqing',    th:'เค่อชิง',     el:'Electro', wpn:'Sword',    stars:5, role:'Main DPS', owned:false},
-  {id:19,name:'Yae Miko',  th:'ยาเอะ มิโกะ', el:'Electro', wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:false},
-  {id:20,name:'Ganyu',     th:'กานอวี๋',     el:'Cryo',    wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:21,name:'Ayaka',     th:'อายากะ',      el:'Cryo',    wpn:'Sword',    stars:5, role:'Main DPS', owned:true},
-  {id:22,name:'Diona',     th:'ไดโอนา',      el:'Cryo',    wpn:'Bow',      stars:4, role:'Healer',   owned:true},
-  {id:23,name:'Rosaria',   th:'โรซาเรีย',    el:'Cryo',    wpn:'Polearm',  stars:4, role:'Sub DPS',  owned:false},
-  {id:24,name:'Shenhe',    th:'เสิ่นเหอ',    el:'Cryo',    wpn:'Polearm',  stars:5, role:'Support',  owned:false},
-  {id:25,name:'Zhongli',   th:'จงหลี',       el:'Geo',     wpn:'Polearm',  stars:5, role:'Support',  owned:true},
-  {id:26,name:'Albedo',    th:'อัลเบโด',     el:'Geo',     wpn:'Sword',    stars:5, role:'Sub DPS',  owned:false},
-  {id:27,name:'Ningguang', th:'หนิงกวง',     el:'Geo',     wpn:'Catalyst', stars:4, role:'Sub DPS',  owned:true},
-  {id:28,name:'Noelle',    th:'โนเอลล์',     el:'Geo',     wpn:'Claymore', stars:4, role:'Main DPS', owned:true},
-  {id:29,name:'Tighnari',  th:'ทิกนารี',     el:'Dendro',  wpn:'Bow',      stars:5, role:'Main DPS', owned:false},
-  {id:30,name:'Nahida',    th:'นาฮิดะ',      el:'Dendro',  wpn:'Catalyst', stars:5, role:'Sub DPS',  owned:true},
-  {id:31,name:'Collei',    th:'คอลเลย์',     el:'Dendro',  wpn:'Bow',      stars:4, role:'Sub DPS',  owned:true},
+// รายชื่อสำรอง (ใช้ทันทีตอนเปิด / ใช้ถ้าโหลดฐานข้อมูลเต็มไม่ได้)
+// เมื่อโหลด Enka สำเร็จ จะถูกแทนด้วยตัวละคร "ครบทุกตัวในเกม" พร้อมชื่อไทยทางการ
+let CHARS = [
+  {aid:10000046,name:'Hu Tao',   th:'หูเทา',       el:'Pyro',    wpn:'Polearm',  stars:5, ic:'Hutao',     role:'Main DPS'},
+  {aid:10000032,name:'Bennett',  th:'เบนเนตต์',    el:'Pyro',    wpn:'Sword',    stars:4, ic:'Bennett',   role:'Support'},
+  {aid:10000023,name:'Xiangling',th:'เซียงหลิง',   el:'Pyro',    wpn:'Polearm',  stars:4, ic:'Xiangling', role:'Sub DPS'},
+  {aid:10000016,name:'Diluc',    th:'ดิลุค',       el:'Pyro',    wpn:'Claymore', stars:5, ic:'Diluc',     role:'Main DPS'},
+  {aid:10000048,name:'Yoimiya',  th:'โยอิมิยะ',    el:'Pyro',    wpn:'Bow',      stars:5, ic:'Yoimiya',   role:'Main DPS'},
+  {aid:10000033,name:'Childe',   th:'ไชลด์',       el:'Hydro',   wpn:'Bow',      stars:5, ic:'Tartaglia', role:'Main DPS'},
+  {aid:10000025,name:'Xingqiu',  th:'ซิงชิว',      el:'Hydro',   wpn:'Sword',    stars:4, ic:'Xingqiu',   role:'Sub DPS'},
+  {aid:10000054,name:'Kokomi',   th:'โคโคมิ',      el:'Hydro',   wpn:'Catalyst', stars:5, ic:'Kokomi',    role:'Healer'},
+  {aid:10000041,name:'Mona',     th:'โมนา',        el:'Hydro',   wpn:'Catalyst', stars:5, ic:'Mona',      role:'Support'},
+  {aid:10000060,name:'Yelan',    th:'เยลาน',       el:'Hydro',   wpn:'Bow',      stars:5, ic:'Yelan',     role:'Sub DPS'},
+  {aid:10000022,name:'Venti',    th:'เวนตี้',      el:'Anemo',   wpn:'Bow',      stars:5, ic:'Venti',     role:'Support'},
+  {aid:10000047,name:'Kazuha',   th:'คาซึฮะ',      el:'Anemo',   wpn:'Sword',    stars:5, ic:'Kazuha',    role:'Support'},
+  {aid:10000043,name:'Sucrose',  th:'ซูโครส',      el:'Anemo',   wpn:'Catalyst', stars:4, ic:'Sucrose',   role:'Support'},
+  {aid:10000003,name:'Jean',     th:'จีน',         el:'Anemo',   wpn:'Sword',    stars:5, ic:'Qin',       role:'Healer'},
+  {aid:10000052,name:'Raiden',   th:'ไรเดน',       el:'Electro', wpn:'Polearm',  stars:5, ic:'Shougun',   role:'Sub DPS'},
+  {aid:10000031,name:'Fischl',   th:'ฟิชเชิล',     el:'Electro', wpn:'Bow',      stars:4, ic:'Fischl',    role:'Sub DPS'},
+  {aid:10000024,name:'Beidou',   th:'เป๋ยโต่ว',    el:'Electro', wpn:'Claymore', stars:4, ic:'Beidou',    role:'Sub DPS'},
+  {aid:10000042,name:'Keqing',   th:'เค่อชิง',     el:'Electro', wpn:'Sword',    stars:5, ic:'Keqing',    role:'Main DPS'},
+  {aid:10000058,name:'Yae Miko', th:'ยาเอะ มิโกะ', el:'Electro', wpn:'Catalyst', stars:5, ic:'Yae',       role:'Sub DPS'},
+  {aid:10000037,name:'Ganyu',    th:'กานอวี๋',     el:'Cryo',    wpn:'Bow',      stars:5, ic:'Ganyu',     role:'Main DPS'},
+  {aid:10000002,name:'Ayaka',    th:'อายากะ',      el:'Cryo',    wpn:'Sword',    stars:5, ic:'Ayaka',     role:'Main DPS'},
+  {aid:10000039,name:'Diona',    th:'ไดโอนา',      el:'Cryo',    wpn:'Bow',      stars:4, ic:'Diona',     role:'Healer'},
+  {aid:10000045,name:'Rosaria',  th:'โรซาเรีย',    el:'Cryo',    wpn:'Polearm',  stars:4, ic:'Rosaria',   role:'Sub DPS'},
+  {aid:10000063,name:'Shenhe',   th:'เสิ่นเหอ',    el:'Cryo',    wpn:'Polearm',  stars:5, ic:'Shenhe',    role:'Support'},
+  {aid:10000030,name:'Zhongli',  th:'จงหลี',       el:'Geo',     wpn:'Polearm',  stars:5, ic:'Zhongli',   role:'Support'},
+  {aid:10000038,name:'Albedo',   th:'อัลเบโด',     el:'Geo',     wpn:'Sword',    stars:5, ic:'Albedo',    role:'Sub DPS'},
+  {aid:10000027,name:'Ningguang',th:'หนิงกวง',     el:'Geo',     wpn:'Catalyst', stars:4, ic:'Ningguang', role:'Sub DPS'},
+  {aid:10000034,name:'Noelle',   th:'โนเอลล์',     el:'Geo',     wpn:'Claymore', stars:4, ic:'Noel',      role:'Main DPS'},
+  {aid:10000069,name:'Tighnari', th:'ทิกนารี',     el:'Dendro',  wpn:'Bow',      stars:5, ic:'Tighnari',  role:'Main DPS'},
+  {aid:10000073,name:'Nahida',   th:'นาฮิดะ',      el:'Dendro',  wpn:'Catalyst', stars:5, ic:'Nahida',    role:'Sub DPS'},
+  {aid:10000067,name:'Collei',   th:'คอลเลย์',     el:'Dendro',  wpn:'Bow',      stars:4, ic:'Collei',    role:'Sub DPS'},
 ];
-// แผนที่ ชื่ออังกฤษ -> ชื่อไทย (ใช้ในหน้าทีม/บิลด์)
-const NAME_TH = {}; CHARS.forEach(c=>NAME_TH[c.name]=c.th);
-const trName = n => NAME_TH[n] ? `${NAME_TH[n]} (${n})` : n;
+// แผนที่ช่วยค้นหา (สร้างใหม่ทุกครั้งที่โหลด roster)
+let NAME_TH = {}, charByAid = {};
+function rebuildMaps(){ NAME_TH={}; charByAid={}; CHARS.forEach(c=>{ NAME_TH[c.name]=c.th; charByAid[c.aid]=c; }); }
+rebuildMaps();
+const iconURL = c => (c && c.ic) ? `https://enka.network/ui/UI_AvatarIcon_${c.ic}.png` : '';
 
-// ชื่อไฟล์รูปไอคอนของแต่ละตัว (รูปจาก Enka.Network CDN) — บางตัวชื่อภายในเกมไม่ตรงกับชื่อโชว์
-const ICON = {
-  'Hu Tao':'Hutao','Childe':'Tartaglia','Jean':'Qin','Raiden':'Shougun','Yae Miko':'Yae','Noelle':'Noel'
-};
-const iconURL = name => `https://enka.network/ui/UI_AvatarIcon_${ICON[name]||name.replace(/\s/g,'')}.png`;
-
-// แผนที่ avatarId ของ Genshin -> id ตัวละครในระบบเรา (สำหรับดึงข้อมูลจาก UID ผ่าน Enka.Network)
-const AID = {
-  10000046:1, 10000032:2, 10000023:3, 10000016:4, 10000048:5, 10000033:6, 10000025:7, 10000054:8,
-  10000041:9, 10000060:10,10000022:11,10000047:12,10000043:13,10000003:14,10000052:15,10000031:16,
-  10000024:17,10000042:18,10000058:19,10000037:20,10000002:21,10000039:22,10000045:23,10000063:24,
-  10000030:25,10000038:26,10000027:27,10000034:28,10000069:29,10000073:30,10000067:31
-};
-
+// members ใช้ avatarId เพื่อจับคู่กับตัวที่มี (กันชื่อทางการเปลี่ยน เช่น Childe -> Tartaglia)
 const TEAMS = [
-  {name:'🔥 Vaporize Hu Tao', desc:'ดาเมจสูง เหมาะกับ Single-target', members:['Hu Tao','Xingqiu','Zhongli','Kazuha']},
-  {name:'⚡ National Team',     desc:'ทีมคลาสสิก ใช้ตัว 4★ ได้ครบ ทรงพลัง', members:['Xiangling','Bennett','Xingqiu','Raiden']},
-  {name:'🌀 Raiden Hypercarry', desc:'Raiden เป็นแกนหลัก ปั่น Burst ไม่หยุด', members:['Raiden','Xiangling','Bennett','Kazuha']},
-  {name:'❄️ Ayaka Freeze',      desc:'แช่แข็งศัตรูถาวร คุมสนามได้ดี', members:['Ayaka','Kokomi','Shenhe','Kazuha']},
-  {name:'🌿 Hyperbloom',        desc:'ทีม Dendro ยอดฮิต ดาเมจ AoE โหด', members:['Nahida','Xingqiu','Raiden','Kokomi']},
-  {name:'🪨 Geo + Support',     desc:'เน้นโล่แน่น ตีหนัก ทนทาน', members:['Noelle','Zhongli','Albedo','Bennett']},
+  {name:'🔥 Vaporize Hu Tao', desc:'ดาเมจสูง เหมาะกับ Single-target', members:[10000046,10000025,10000030,10000047]},
+  {name:'⚡ National Team',     desc:'ทีมคลาสสิก ใช้ตัว 4★ ได้ครบ ทรงพลัง', members:[10000023,10000032,10000025,10000052]},
+  {name:'🌀 Raiden Hypercarry', desc:'Raiden เป็นแกนหลัก ปั่น Burst ไม่หยุด', members:[10000052,10000023,10000032,10000047]},
+  {name:'❄️ Ayaka Freeze',      desc:'แช่แข็งศัตรูถาวร คุมสนามได้ดี', members:[10000002,10000054,10000063,10000047]},
+  {name:'🌿 Hyperbloom',        desc:'ทีม Dendro ยอดฮิต ดาเมจ AoE โหด', members:[10000073,10000025,10000052,10000054]},
+  {name:'🪨 Geo + Support',     desc:'เน้นโล่แน่น ตีหนัก ทนทาน', members:[10000034,10000030,10000038,10000032]},
 ];
+// บิลด์ -> avatarId (สำหรับดึงรูป/ชื่อไทย)
+const BUILD_AID = {'Hu Tao':10000046,'Raiden':10000052,'Bennett':10000032,'Nahida':10000073,'Ayaka':10000002,'Zhongli':10000030,'Ganyu':10000037,'Kazuha':10000047};
 
 const BUILDS = {
   'Hu Tao': {el:'Pyro', role:'Main DPS',
@@ -379,8 +373,7 @@ const LS = {
 const todayStr = ()=> new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD ตามเขตเวลาเครื่อง
 
 let resin = LS.get('resin',0);
-let owned = LS.get('owned', null);
-if(!owned){ owned = {}; CHARS.forEach(c=>owned[c.id]=c.owned); LS.set('owned',owned); }
+let owned = LS.get('owned2', {}); // เก็บแบบ { avatarId: true }
 let pity = LS.get('pity',0);
 
 const TASKS = ['ทำ Commission 4 อัน','รับ Realm Currency (Teapot)','ใช้ Resin (Domain/Boss)','ส่งของ Expedition','รับ Daily ใน Battle Pass','ทำ Co-op / ช่วยเพื่อน'];
@@ -458,13 +451,13 @@ function buildElFilter(){
 }
 function setEl(e,btn){ filterEl=e; document.querySelectorAll('#elFilter .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChars(); }
 function ownFilter(o,btn){ filterOwn=o; document.querySelectorAll('[data-own]').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); renderChars(); }
-function toggleOwn(id){ owned[id]=!owned[id]; LS.set('owned',owned); renderChars(); renderTeams(); }
+function toggleOwn(aid){ owned[aid]=!owned[aid]; LS.set('owned2',owned); renderChars(); renderTeams(); }
 
 function renderChars(){
   const g=document.getElementById('charGrid'); g.innerHTML='';
   let shown=0, total=0;
   CHARS.forEach(c=>{
-    const has = !!owned[c.id]; if(has) total++;
+    const has = !!owned[c.aid]; if(has) total++;
     if(filterEl!=='all' && c.el!==filterEl) return;
     if(filterOwn==='yes' && !has) return;
     if(filterOwn==='no' && has) return;
@@ -474,24 +467,64 @@ function renderChars(){
     d.innerHTML=`<div class="bar-el" style="background:${elColor(c.el)}"></div>
       <div class="own">${has?'✅':'➕'}</div>
       <div class="port" style="background:linear-gradient(160deg,${elColor(c.el)}44,var(--card))">
-        <img src="${iconURL(c.name)}" alt="${c.name}" loading="lazy" onerror="this.remove()">
+        <img src="${iconURL(c)}" alt="${c.name}" loading="lazy" onerror="this.remove()">
       </div>
       <div class="nm">${c.name}</div>
-      <div class="sub" style="font-size:.72rem;opacity:.75">${c.th}</div>
+      <div class="sub" style="font-size:.72rem;opacity:.75">${c.th||''}</div>
       <div class="sub"><span class="el" style="background:${elColor(c.el)}33;color:${elColor(c.el)}">${trEl(c.el)}</span> · ${trWpn(c.wpn)}</div>
-      <div class="sub">${trRole(c.role)}</div>
+      ${c.role?`<div class="sub">${trRole(c.role)}</div>`:''}
       <div class="stars">${'★'.repeat(c.stars)}</div>`;
-    d.onclick=()=>toggleOwn(c.id);
+    d.onclick=()=>toggleOwn(c.aid);
     g.appendChild(d);
   });
-  document.getElementById('charCount').textContent = `แสดง ${shown} ตัว · คุณมีทั้งหมด ${total} / ${CHARS.length} ตัว`;
+  const totalOwned = Object.values(owned).filter(Boolean).length;
+  document.getElementById('charCount').textContent = `แสดง ${shown} ตัว · มีทั้งหมด ${totalOwned} / ${CHARS.length} ตัว`;
+}
+
+/* ============ โหลดตัวละครครบทุกตัวจาก Enka.Network ============ */
+async function loadFullRoster(){
+  try{
+    const [cRes,lRes] = await Promise.all([
+      fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/characters.json'),
+      fetch('https://raw.githubusercontent.com/EnkaNetwork/API-docs/master/store/loc.json')
+    ]);
+    if(!cRes.ok || !lRes.ok) return;
+    const data = await cRes.json(), loc = await lRes.json();
+    const en = loc.en||{}, th = loc.th||loc.en||{};
+    const elMap  = {Fire:'Pyro',Water:'Hydro',Wind:'Anemo',Electric:'Electro',Ice:'Cryo',Rock:'Geo',Grass:'Dendro'};
+    const wpnMap = {WEAPON_SWORD_ONE_HAND:'Sword',WEAPON_POLE:'Polearm',WEAPON_CLAYMORE:'Claymore',WEAPON_BOW:'Bow',WEAPON_CATALYST:'Catalyst'};
+    // เก็บ role + ชื่อไทยที่แปลเอง ของ 31 ตัวยอดนิยมไว้ก่อนแทนรายชื่อ
+    const roleByAid = {}, thByAid = {};
+    CHARS.forEach(c=>{ if(c.role) roleByAid[c.aid]=c.role; if(c.th && c.th!==c.name) thByAid[c.aid]=c.th; });
+    const list = [];
+    for(const k in data){
+      if(k.indexOf('-')>=0) continue;                 // ข้ามตัวแปร Traveler
+      const info = data[k]; if(!info || !info.NameTextMapHash) continue;
+      const q = info.QualityType;
+      if(q!=='QUALITY_ORANGE' && q!=='QUALITY_ORANGE_SP' && q!=='QUALITY_PURPLE') continue;
+      const el = elMap[info.Element]; if(!el) continue;
+      const nameEn = en[info.NameTextMapHash]; if(!nameEn) continue;
+      const aid = +k;
+      list.push({
+        aid, name:nameEn, th:(thByAid[aid] || th[info.NameTextMapHash] || nameEn), el,
+        wpn:wpnMap[info.WeaponType]||'', stars:(q==='QUALITY_PURPLE'?4:5),
+        ic:(info.SideIconName||'').replace('UI_AvatarIcon_Side_',''),
+        role:roleByAid[aid]
+      });
+    }
+    if(list.length < 40) return;                       // ข้อมูลไม่สมบูรณ์ -> ใช้รายชื่อสำรอง
+    list.sort((a,b)=> b.stars-a.stars || a.el.localeCompare(b.el) || a.name.localeCompare(b.name));
+    CHARS = list; rebuildMaps(); renderChars(); renderTeams();
+    const note = document.getElementById('rosterNote');
+    if(note) note.textContent = `✅ โหลดตัวละครครบ ${CHARS.length} ตัวจากเกมแล้ว`;
+  }catch(e){ /* ออฟไลน์/บล็อก -> ใช้รายชื่อสำรอง 31 ตัว */ }
 }
 
 /* ============ ดึงข้อมูลจาก UID (Enka.Network) ============ */
 function uidStatus(msg){ document.getElementById('uidStatus').innerHTML = msg; }
 async function fetchUID(){
   const uid = (document.getElementById('uidInput').value||'').trim();
-  if(!/^\d{9}$/.test(uid)){ uidStatus('⚠️ กรุณากรอก UID เป็นตัวเลข 9 หลัก'); return; }
+  if(!/^\d{9,10}$/.test(uid)){ uidStatus('⚠️ กรุณากรอก UID เป็นตัวเลข 9–10 หลัก'); return; }
   LS.set('uid',uid);
   uidStatus('⏳ กำลังดึงข้อมูลจาก Enka.Network ...');
   try{
@@ -506,15 +539,12 @@ async function fetchUID(){
                  ? data.avatarInfoList
                  : (info.showAvatarInfoList || []);
     if(!list.length){ uidStatus('⚠️ โปรไฟล์นี้ไม่ได้ตั้งโชว์ตัวละครใน Character Showcase'); return; }
-    let matched=0, unknown=0;
-    list.forEach(a=>{
-      const cid = AID[a.avatarId];
-      if(cid){ owned[cid]=true; matched++; } else unknown++;
-    });
-    LS.set('owned',owned); renderChars(); renderTeams();
-    uidStatus(`✅ <b>${info.nickname||'ผู้เล่น'}</b> (AR ${info.level||'?'}) — ติ๊กให้แล้ว ${matched} ตัว`
-      + (unknown? ` · มี ${unknown} ตัวที่ยังไม่มีในระบบนี้` : '')
-      + `<br><span style="opacity:.7">หมายเหตุ: ดึงได้เฉพาะตัวที่โชว์ในโปรไฟล์ (สูงสุด 8 ตัว) ไม่ใช่ตัวละครทั้งหมดที่คุณมี</span>`);
+    let matched=0;
+    list.forEach(a=>{ if(a.avatarId){ owned[a.avatarId]=true; matched++; } });
+    LS.set('owned2',owned); renderChars(); renderTeams();
+    const names = list.map(a=> (charByAid[a.avatarId]?charByAid[a.avatarId].th:('#'+a.avatarId))).join(', ');
+    uidStatus(`✅ <b>${info.nickname||'ผู้เล่น'}</b> (AR ${info.level||'?'}) — ติ๊กให้แล้ว ${matched} ตัว: ${names}`
+      + `<br><span style="opacity:.7">หมายเหตุ: ดึงได้เฉพาะตัวที่โชว์ในโปรไฟล์ (สูงสุด 8 ตัว) ไม่ใช่ตัวละครทั้งหมดที่คุณมี — ที่เหลือกดติ๊กเองได้</span>`);
   }catch(e){
     uidStatus('❌ เชื่อมต่อไม่ได้ (อาจถูก CORS บล็อกตอนเปิดไฟล์ในเครื่อง หรือเน็ตมีปัญหา)<br>'
       + '<span style="opacity:.7">วิธีแก้: เปิดผ่านเว็บจริงบน GitHub Pages แทนการดับเบิลคลิกไฟล์ในเครื่อง</span>');
@@ -524,16 +554,16 @@ async function fetchUID(){
 /* ============ TEAMS ============ */
 function renderTeams(){
   const list=document.getElementById('teamList'); list.innerHTML='';
-  const myNames = CHARS.filter(c=>owned[c.id]).map(c=>c.name);
+  const thName = aid => charByAid[aid] ? charByAid[aid].th : ('#'+aid);
   TEAMS.forEach(t=>{
-    const miss = t.members.filter(m=>!myNames.includes(m));
+    const miss = t.members.filter(aid=>!owned[aid]);
     const full = miss.length===0;
     const d=document.createElement('div');
     d.className='team'+(full?' full':'');
     d.innerHTML=`<h3>${t.name}</h3>
       <div class="hint" style="margin:0">${t.desc}</div>
-      <div class="tags">${t.members.map(m=>`<span class="tag ${myNames.includes(m)?'have':'miss'}">${NAME_TH[m]||m}</span>`).join('')}</div>
-      <div class="status">${full?'<span style="color:var(--ok)">✅ มีตัวครบทีมแล้ว!</span>':'<span style="color:var(--bad)">⚠️ ยังขาด: '+miss.map(m=>NAME_TH[m]||m).join(', ')+'</span>'}</div>`;
+      <div class="tags">${t.members.map(aid=>`<span class="tag ${owned[aid]?'have':'miss'}">${thName(aid)}</span>`).join('')}</div>
+      <div class="status">${full?'<span style="color:var(--ok)">✅ มีตัวครบทีมแล้ว!</span>':'<span style="color:var(--bad)">⚠️ ยังขาด: '+miss.map(thName).join(', ')+'</span>'}</div>`;
     list.appendChild(d);
   });
 }
@@ -574,10 +604,12 @@ function showPopup(name,mat){
 }
 
 /* ============ BUILDS ============ */
+const buildChar = n => charByAid[BUILD_AID[n]];
+const buildTh   = n => (buildChar(n) && buildChar(n).th) || n;
 function buildBuildSel(){
   const s=document.getElementById('buildSel');
   Object.keys(BUILDS).forEach((n,i)=>{
-    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${NAME_TH[n]||n}</button>`;
+    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${buildTh(n)}</button>`;
   });
   showBuild(Object.keys(BUILDS)[0]);
 }
@@ -587,9 +619,9 @@ function showBuild(n,btn){
   document.getElementById('buildBody').innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
       <div style="width:62px;height:62px;border-radius:12px;overflow:hidden;flex-shrink:0;background:linear-gradient(160deg,${elColor(b.el)}44,var(--card));border:1px solid var(--line)">
-        <img src="${iconURL(n)}" alt="${n}" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;object-position:top">
+        <img src="${iconURL(buildChar(n))}" alt="${n}" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;object-position:top">
       </div>
-      <h3 style="margin:0">${NAME_TH[n]||n} <span class="hint" style="margin:0;font-size:.78rem">${n}</span><br><span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
+      <h3 style="margin:0">${buildTh(n)} <span class="hint" style="margin:0;font-size:.78rem">${n}</span><br><span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
     </div>
     <dl class="bd">
       <dt>🛡️ Artifact Set</dt><dd>${b.artifact}<br><span class="hint" style="margin:0">สำรอง: ${b.alt}</span></dd>
@@ -607,6 +639,7 @@ renderResin(); renderCheck(); renderDomains(); renderPity();
 buildElFilter(); renderChars(); renderTeams();
 buildRegFilter(); renderMap(); buildBuildSel();
 document.getElementById('uidInput').value = LS.get('uid','');
+loadFullRoster();   // ดึงตัวละครครบทุกตัวจากเกม (อัปเดต CHARS อัตโนมัติเมื่อโหลดเสร็จ)
 </script>
 </body>
 </html>
