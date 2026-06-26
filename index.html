@@ -143,7 +143,7 @@ svg .reg:hover{filter:brightness(1.3)}
   <section id="v-chars" class="view">
     <div class="card">
       <h2>🔎 ดึงตัวละครจาก UID</h2>
-      <div class="hint" style="margin:0 0 8px">กรอก UID 9 หลักในเกม → ระบบจะติ๊กตัวที่คุณ <b>ตั้งโชว์ในโปรไฟล์</b> ให้อัตโนมัติ (ผ่าน Enka.Network · ได้สูงสุด 8 ตัว)</div>
+      <div class="hint" style="margin:0 0 8px">กรอก UID (9–10 หลัก) ในเกม → ระบบจะติ๊กตัวที่คุณ <b>ตั้งโชว์ในโปรไฟล์</b> ให้อัตโนมัติ (ผ่าน Enka.Network · ได้สูงสุด 8 ตัว)</div>
       <div class="row">
         <input id="uidInput" inputmode="numeric" maxlength="10" placeholder="เช่น 812345678"
           style="flex:1;min-width:150px;background:var(--card2);border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;font-family:inherit;font-size:.95rem;letter-spacing:1px">
@@ -523,25 +523,41 @@ async function loadFullRoster(){
   }
 }
 
-/* ============ ดึงข้อมูลจาก UID (Enka.Network) ============ */
+/* ============ ดึงข้อมูลจาก UID (Enka.Network ผ่าน CORS proxy) ============ */
 function uidStatus(msg){ document.getElementById('uidStatus').innerHTML = msg; }
+// Enka ไม่ส่ง CORS header จึงต้องผ่าน proxy — ลองหลายตัวจนกว่าจะสำเร็จ
+async function fetchEnka(uid){
+  const target = `https://enka.network/api/uid/${uid}`;       // ไม่มี / ท้าย (กัน 308 redirect)
+  const enc = encodeURIComponent(target);
+  const attempts = [
+    { url:`https://corsproxy.io/?url=${enc}`,                 unwrap:t=>t },
+    { url:`https://api.allorigins.win/raw?url=${enc}`,        unwrap:t=>t },
+    { url:`https://api.codetabs.com/v1/proxy/?quest=${enc}`,  unwrap:t=>t },
+    { url:`https://api.allorigins.win/get?url=${enc}`,        unwrap:t=>JSON.parse(t).contents },
+  ];
+  for(const a of attempts){
+    try{
+      const res = await fetch(a.url);
+      if(!res.ok) continue;
+      const data = JSON.parse(a.unwrap(await res.text()));
+      if(data && (data.playerInfo || data.avatarInfoList)) return data;
+    }catch(e){ /* proxy ตัวนี้ล่ม -> ลองตัวถัดไป */ }
+  }
+  return null;
+}
 async function fetchUID(){
   const uid = (document.getElementById('uidInput').value||'').trim();
   if(!/^\d{9,10}$/.test(uid)){ uidStatus('⚠️ กรุณากรอก UID เป็นตัวเลข 9–10 หลัก'); return; }
   LS.set('uid',uid);
-  uidStatus('⏳ กำลังดึงข้อมูลจาก Enka.Network ...');
+  uidStatus('⏳ กำลังดึงข้อมูล... (อาจใช้เวลาสักครู่)');
   try{
-    const res = await fetch(`https://enka.network/api/uid/${uid}/`);
-    if(res.status===404){ uidStatus('❌ ไม่พบ UID นี้ (404) — ตรวจสอบเลขอีกครั้ง'); return; }
-    if(res.status===424){ uidStatus('⚠️ โปรไฟล์ไม่ได้เปิดโชว์ตัวละคร หรือเซิร์ฟเวอร์กำลังปรับปรุง'); return; }
-    if(res.status===429){ uidStatus('⏳ ดึงข้อมูลถี่เกินไป รอสักครู่แล้วลองใหม่'); return; }
-    if(!res.ok){ uidStatus('❌ ดึงข้อมูลไม่สำเร็จ (รหัส '+res.status+')'); return; }
-    const data = await res.json();
+    const data = await fetchEnka(uid);
+    if(!data){ uidStatus('❌ ดึงข้อมูลไม่สำเร็จ — ตรวจว่า UID ถูกต้อง + โปรไฟล์เปิดโชว์ตัวละคร แล้วลองใหม่ (บางครั้ง proxy ล่มชั่วคราว)'); return; }
     const info = data.playerInfo || {};
     const list = (data.avatarInfoList && data.avatarInfoList.length)
                  ? data.avatarInfoList
                  : (info.showAvatarInfoList || []);
-    if(!list.length){ uidStatus('⚠️ โปรไฟล์นี้ไม่ได้ตั้งโชว์ตัวละครใน Character Showcase'); return; }
+    if(!list.length){ uidStatus(`✅ พบผู้เล่น <b>${info.nickname||'?'}</b> (AR ${info.level||'?'}) แต่โปรไฟล์ไม่ได้ตั้งโชว์ตัวละคร`); return; }
     let matched=0;
     list.forEach(a=>{ if(a.avatarId){ owned[a.avatarId]=true; matched++; } });
     LS.set('owned2',owned); renderChars(); renderTeams();
@@ -549,8 +565,7 @@ async function fetchUID(){
     uidStatus(`✅ <b>${info.nickname||'ผู้เล่น'}</b> (AR ${info.level||'?'}) — ติ๊กให้แล้ว ${matched} ตัว: ${names}`
       + `<br><span style="opacity:.7">หมายเหตุ: ดึงได้เฉพาะตัวที่โชว์ในโปรไฟล์ (สูงสุด 8 ตัว) ไม่ใช่ตัวละครทั้งหมดที่คุณมี — ที่เหลือกดติ๊กเองได้</span>`);
   }catch(e){
-    uidStatus('❌ เชื่อมต่อไม่ได้ (อาจถูก CORS บล็อกตอนเปิดไฟล์ในเครื่อง หรือเน็ตมีปัญหา)<br>'
-      + '<span style="opacity:.7">วิธีแก้: เปิดผ่านเว็บจริงบน GitHub Pages แทนการดับเบิลคลิกไฟล์ในเครื่อง</span>');
+    uidStatus('❌ เกิดข้อผิดพลาด: '+e.message);
   }
 }
 
