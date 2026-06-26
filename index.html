@@ -529,11 +529,12 @@ function uidStatus(msg){ document.getElementById('uidStatus').innerHTML = msg; }
 async function fetchEnka(uid){
   const target = `https://enka.network/api/uid/${uid}`;       // ไม่มี / ท้าย (กัน 308 redirect)
   const enc = encodeURIComponent(target);
+  const cb = Date.now();                                       // กัน proxy cache ข้อมูลเก่า
   const attempts = [
-    { url:`https://corsproxy.io/?url=${enc}`,                 unwrap:t=>t },
-    { url:`https://api.allorigins.win/raw?url=${enc}`,        unwrap:t=>t },
-    { url:`https://api.codetabs.com/v1/proxy/?quest=${enc}`,  unwrap:t=>t },
-    { url:`https://api.allorigins.win/get?url=${enc}`,        unwrap:t=>JSON.parse(t).contents },
+    { url:`https://corsproxy.io/?url=${enc}&cb=${cb}`,                 unwrap:t=>t },
+    { url:`https://api.allorigins.win/raw?url=${enc}&cb=${cb}`,        unwrap:t=>t },
+    { url:`https://api.codetabs.com/v1/proxy/?quest=${enc}&cb=${cb}`,  unwrap:t=>t },
+    { url:`https://api.allorigins.win/get?url=${enc}&cb=${cb}`,        unwrap:t=>JSON.parse(t).contents },
   ];
   for(const a of attempts){
     try{
