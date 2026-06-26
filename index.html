@@ -531,14 +531,15 @@ async function fetchEnka(uid){
   const enc = encodeURIComponent(target);
   const cb = Date.now();                                       // กัน proxy cache ข้อมูลเก่า
   const attempts = [
-    { url:`https://corsproxy.io/?url=${enc}&cb=${cb}`,                 unwrap:t=>t },
-    { url:`https://api.allorigins.win/raw?url=${enc}&cb=${cb}`,        unwrap:t=>t },
-    { url:`https://api.codetabs.com/v1/proxy/?quest=${enc}&cb=${cb}`,  unwrap:t=>t },
-    { url:`https://api.allorigins.win/get?url=${enc}&cb=${cb}`,        unwrap:t=>JSON.parse(t).contents },
+    // jina.ai — เสถียรสุด (ห่อ Enka JSON ไว้ใน data.content)
+    { url:`https://r.jina.ai/${target}`, opt:{headers:{Accept:'application/json'}}, unwrap:t=>JSON.parse(t).data.content },
+    { url:`https://corsproxy.io/?url=${enc}&cb=${cb}`,           unwrap:t=>t },
+    { url:`https://api.allorigins.win/raw?url=${enc}&cb=${cb}`,  unwrap:t=>t },
+    { url:`https://api.allorigins.win/get?url=${enc}&cb=${cb}`,  unwrap:t=>JSON.parse(t).contents },
   ];
   for(const a of attempts){
     try{
-      const res = await fetch(a.url);
+      const res = await fetch(a.url, a.opt||{});
       if(!res.ok) continue;
       const data = JSON.parse(a.unwrap(await res.text()));
       if(data && (data.playerInfo || data.avatarInfoList)) return data;
