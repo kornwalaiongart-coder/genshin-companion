@@ -88,6 +88,13 @@ svg .reg:hover{filter:brightness(1.3)}
 .bd .li{padding:3px 0;border-bottom:1px dashed var(--line)}
 .tipbox{background:var(--bg);border-radius:10px;padding:12px;margin-top:6px;white-space:pre-line;font-size:.85rem;line-height:1.7}
 .hint{color:var(--mut);font-size:.8rem;margin-top:6px}
+
+.map-tabs{display:flex;gap:8px;margin-bottom:12px}
+.official-map-wrap{position:relative;width:100%;padding-top:62%;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.official-map-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.map-fallback{display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;background:var(--bg)}
+.map-fallback.show{display:flex}
+.map-fallback .big{font-size:2rem}
 </style>
 </head>
 <body>
@@ -178,12 +185,40 @@ svg .reg:hover{filter:brightness(1.3)}
   <section id="v-map" class="view">
     <div class="card">
       <h2>🗺️ แผนที่ Teyvat</h2>
-      <div class="hint" style="margin:0 0 10px">คลิกที่ภูมิภาคหรือจุดสีทองเพื่อดูวัตถุดิบที่ฟาร์มได้</div>
-      <div class="row" id="regFilter"></div>
-      <div class="mapwrap" style="margin-top:12px">
-        <svg viewBox="0 0 360 300" width="100%" id="teyvat"></svg>
+      <div class="map-tabs">
+        <button class="btn on" id="mapTabCustom" onclick="mapTab('custom')">แผนที่ย่อ (วาดเอง)</button>
+        <button class="btn" id="mapTabOfficial" onclick="mapTab('official')">แผนที่ทางการ (HoYoLAB)</button>
       </div>
-      <div class="popup" id="mapPopup"></div>
+
+      <div id="mapCustomView">
+        <div class="hint" style="margin:0 0 10px">คลิกที่ภูมิภาคหรือจุดสีทองเพื่อดูวัตถุดิบที่ฟาร์มได้</div>
+        <div class="row" id="regFilter"></div>
+        <div class="mapwrap" style="margin-top:12px">
+          <svg viewBox="0 0 360 300" width="100%" id="teyvat"></svg>
+        </div>
+        <div class="popup" id="mapPopup"></div>
+      </div>
+
+      <div id="mapOfficialView" style="display:none">
+        <div class="hint" style="margin:0 0 10px">
+          แผนที่แบบเต็มของจริงจาก HoYoLAB (มีจุดวัตถุดิบ, ปริศนา, กล่องสมบัติ ฯลฯ ครบทุกอย่าง)<br>
+          ⚠️ เว็บไซต์บางแห่งไม่อนุญาตให้ฝังแผนที่ในหน้าเว็บอื่น หากกล่องด้านล่างว่างเปล่า/ขึ้นข้อความปฏิเสธ ให้กดปุ่ม "เปิดในแท็บใหม่"
+        </div>
+        <div class="row" style="margin-bottom:10px">
+          <a class="btn acc" id="officialMapLink" href="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=th-th#/map/2" target="_blank" rel="noopener">🔗 เปิดแผนที่ทางการในแท็บใหม่</a>
+        </div>
+        <div class="official-map-wrap" id="officialMapWrap">
+          <iframe id="officialMapFrame"
+            src="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=th-th#/map/2"
+            loading="lazy" allow="fullscreen" allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div class="map-fallback" id="mapFallback">
+            <div class="big">🗺️</div>
+            <div>แผนที่ไม่สามารถแสดงในหน้านี้ได้ (เว็บไซต์ต้นทางบล็อกการฝัง iframe)</div>
+            <a class="btn acc" href="https://act.hoyolab.com/ys/app/interactive-map/index.html?lang=th-th#/map/2" target="_blank" rel="noopener">เปิดแผนที่ในแท็บใหม่</a>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -485,7 +520,7 @@ function renderChars(){
 function rosterNote(msg){ const n=document.getElementById('rosterNote'); if(n) n.innerHTML=msg; }
 // Traveler ตัวเอก (Ambr ไม่ส่งร่างหลักมาตรง ๆ จึงเพิ่มเองให้ครบ)
 const TRAVELERS = [
-  {aid:10000005, name:'Aether',  th:'อีথอร์ (พระเอก)', el:'Anemo', wpn:'Sword', stars:5, ic:'PlayerBoy'},
+  {aid:10000005, name:'Aether',  th:'อีธอร์ (พระเอก)', el:'Anemo', wpn:'Sword', stars:5, ic:'PlayerBoy'},
   {aid:10000007, name:'Lumine',  th:'ลูมิน (นางเอก)',  el:'Anemo', wpn:'Sword', stars:5, ic:'PlayerGirl'},
 ];
 async function loadFullRoster(){
@@ -588,7 +623,7 @@ function renderTeams(){
   });
 }
 
-/* ============ MAP ============ */
+/* ============ MAP (custom) ============ */
 let regFilter='all';
 function buildRegFilter(){
   const f=document.getElementById('regFilter');
@@ -623,43 +658,30 @@ function showPopup(name,mat){
   p.classList.add('show');
 }
 
-/* ============ BUILDS ============ */
-const buildChar = n => charByAid[BUILD_AID[n]];
-const buildTh   = n => (buildChar(n) && buildChar(n).th) || n;
-function buildBuildSel(){
-  const s=document.getElementById('buildSel');
-  Object.keys(BUILDS).forEach((n,i)=>{
-    s.innerHTML+=`<button class="btn ${i===0?'on':''}" onclick="showBuild('${n}',this)">${buildTh(n)}</button>`;
-  });
-  showBuild(Object.keys(BUILDS)[0]);
+/* ============ MAP (official HoYoLAB tab + iframe fallback detection) ============ */
+function mapTab(t){
+  const btnC=document.getElementById('mapTabCustom'), btnO=document.getElementById('mapTabOfficial');
+  const vC=document.getElementById('mapCustomView'), vO=document.getElementById('mapOfficialView');
+  if(t==='custom'){
+    btnC.classList.add('on'); btnO.classList.remove('on');
+    vC.style.display=''; vO.style.display='none';
+  }else{
+    btnO.classList.add('on'); btnC.classList.remove('on');
+    vO.style.display=''; vC.style.display='none';
+    checkOfficialMapLoad();
+  }
 }
-function showBuild(n,btn){
-  if(btn){document.querySelectorAll('#buildSel .btn').forEach(b=>b.classList.remove('on')); btn.classList.add('on');}
-  const b=BUILDS[n];
-  document.getElementById('buildBody').innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-      <div style="width:62px;height:62px;border-radius:12px;overflow:hidden;flex-shrink:0;background:linear-gradient(160deg,${elColor(b.el)}44,var(--card));border:1px solid var(--line)">
-        <img src="${iconURL(buildChar(n))}" alt="${n}" onerror="this.remove()" style="width:100%;height:100%;object-fit:cover;object-position:top">
-      </div>
-      <h3 style="margin:0">${buildTh(n)} <span class="hint" style="margin:0;font-size:.78rem">${n}</span><br><span class="el" style="background:${elColor(b.el)}33;color:${elColor(b.el)}">${trEl(b.el)}</span> <span class="hint" style="margin:0">${trRole(b.role)}</span></h3>
-    </div>
-    <dl class="bd">
-      <dt>🛡️ Artifact Set</dt><dd>${b.artifact}<br><span class="hint" style="margin:0">สำรอง: ${b.alt}</span></dd>
-      <dt>⚔️ อาวุธ (เรียงจากดีสุด)</dt><dd>${b.weapons.map(w=>`<div class="li">${w}</div>`).join('')}</dd>
-      <dt>📊 Main Stats</dt><dd>${b.mainStats.map(s=>`<div class="li">${s}</div>`).join('')}</dd>
-      <dt>📈 Sub Stats (ลำดับความสำคัญ)</dt><dd>${b.subStats.join(' › ')}</dd>
-      <dt>🎯 ลำดับอัพ Talent</dt><dd>${b.talent}</dd>
-      <dt>📚 Talent Book</dt><dd>${b.book}</dd>
-      <dt>💡 Tips</dt><dd><div class="tipbox">${b.tip}</div></dd>
-    </dl>`;
+let officialMapChecked=false;
+function checkOfficialMapLoad(){
+  if(officialMapChecked) return; officialMapChecked=true;
+  const frame=document.getElementById('officialMapFrame');
+  const fallback=document.getElementById('mapFallback');
+  // ถ้า iframe โดนบล็อกด้วย X-Frame-Options/CSP เบราว์เซอร์จะไม่ยิง 'load' event (หรือหน้าจะว่างเปล่า)
+  // จึงตั้งเวลาไว้เช็ค — ถ้าผ่านไปนานแล้วยังไม่ยิง load ให้โชว์ปุ่มสำรอง
+  let loaded=false;
+  frame.addEventListener('load',()=>{ loaded=true; });
+  setTimeout(()=>{ if(!loaded) fallback.classList.add('show'); }, 4000);
 }
-
-/* ============ INIT ============ */
-renderResin(); renderCheck(); renderDomains(); renderPity();
-buildElFilter(); renderChars(); renderTeams();
-buildRegFilter(); renderMap(); buildBuildSel();
-document.getElementById('uidInput').value = LS.get('uid','');
-loadFullRoster();   // ดึงตัวละครครบทุกตัวจากเกม (อัปเดต CHARS อัตโนมัติเมื่อโหลดเสร็จ)
 </script>
 </body>
 </html>
